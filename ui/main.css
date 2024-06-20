@@ -1,0 +1,6 @@
+.bg-palette {
+    background-image: url(palette-herstellung.jpg);
+    background-size: cover;
+    background-position: center;
+    opacity: 0.75;
+}
