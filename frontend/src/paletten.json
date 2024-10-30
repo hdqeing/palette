@@ -1,0 +1,16 @@
+{
+    "paletten": [
+        {
+            "name": "Europalette"
+        },
+        {
+            "name": "Einwegpalette"
+        },
+        {
+            "name": "Displaypalette"
+        },
+        {
+            "name": "Duesseldorfer"
+        }
+    ]
+}
