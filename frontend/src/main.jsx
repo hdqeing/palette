@@ -4,9 +4,12 @@ import App from './App.jsx'
 import './index.css'
 import 'bootstrap/dist/css/bootstrap.min.css';
 import data from './paletten.json'
+import { BrowserRouter } from 'react-router-dom';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <App paletten={data.paletten}/>
+    <BrowserRouter>
+      <App paletten={data.paletten}/>
+    </BrowserRouter>
   </StrictMode>,
 )

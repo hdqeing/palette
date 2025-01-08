@@ -1,0 +1,47 @@
+services:
+
+  
+
+  backend:
+    image: palette/api
+    environment:
+      - DB_SERVER=dbserver
+      - DB_PORT=5432
+      - DB_NAME=postgres
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=123456
+    ports:
+      - "8080:8080"
+    networks:
+      - app
+
+
+  database:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: 123456
+    hostname: dbserver
+    ports:
+      - "5432:5432"
+    networks:
+      - db-admin
+      - app
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@beit.de
+      - PGADMIN_DEFAULT_PASSWORD=123456
+    ports:
+      - "80:80"
+    networks:
+      - db-admin
+
+networks:
+  db-admin:
+  app:
+
+volumes:
+  db-data:
