@@ -7,6 +7,7 @@ import Layout from './layouts/Layout';
 import Cart from './pages/Cart';
 import Supplier from './pages/Supplier';
 import Order from './pages/Order';
+import Query from './pages/Query';
 
 export default function App(props) {
   return (
@@ -15,7 +16,7 @@ export default function App(props) {
       path="/" 
       element={
         <Layout>
-          <Login />
+          <Home />
         </Layout>
       }/>
       <Route path="/login" element={
@@ -46,6 +47,12 @@ export default function App(props) {
         </Layout>
       }>
       </Route>  
+      <Route path="/query" element={
+        <Layout>
+          <Query />
+        </Layout>
+      }>
+      </Route> 
 
     </Routes>
   );
