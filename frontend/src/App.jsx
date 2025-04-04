@@ -8,6 +8,13 @@ import Cart from './pages/Cart';
 import Supplier from './pages/Supplier';
 import Order from './pages/Order';
 import Query from './pages/Query';
+import SellerLayout from './layouts/SellerLayout';
+import SellerHome from './pages/SellerHome';
+import SellerQuery from './pages/SellerQuery';
+import SellerStats from './pages/SellerStats';
+import SellerProfile from './pages/SellerProfile';
+import SellerMail from './pages/SellerMail';
+import SellerOrder from './pages/SellerOrder';
 
 export default function App(props) {
   return (
@@ -53,6 +60,14 @@ export default function App(props) {
         </Layout>
       }>
       </Route> 
+      <Route path="seller" element={<SellerLayout />}>
+        <Route index element={<SellerHome />} />
+        <Route path='query' element={<SellerQuery />} />
+        <Route path='stats' element={<SellerStats />} />
+        <Route path='profile' element={<SellerProfile />} />
+        <Route path='mail' element={<SellerMail />} />
+        <Route path='order' element={<SellerOrder />} />
+      </Route>
 
     </Routes>
   );

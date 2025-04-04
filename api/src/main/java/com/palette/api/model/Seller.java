@@ -6,16 +6,23 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.User;
 
+import java.util.Collection;
 import java.util.List;
 
 @Entity
-public class Seller {
+public class Seller extends User {
     @Id
     @GeneratedValue
     private long id;
     private String email;
     private String name;
+
+    public Seller(String username, String password, Collection<? extends GrantedAuthority> authorities) {
+        super(username, password, authorities);
+    }
 
     public List<Offer> getOffers() {
         return offers;
