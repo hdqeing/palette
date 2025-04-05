@@ -15,6 +15,8 @@ import SellerStats from './pages/SellerStats';
 import SellerProfile from './pages/SellerProfile';
 import SellerMail from './pages/SellerMail';
 import SellerOrder from './pages/SellerOrder';
+import SellerSignup from './pages/SellerSignup';
+import SellerLogin from './pages/SellerLogin';
 
 export default function App(props) {
   return (
@@ -67,6 +69,10 @@ export default function App(props) {
         <Route path='profile' element={<SellerProfile />} />
         <Route path='mail' element={<SellerMail />} />
         <Route path='order' element={<SellerOrder />} />
+      </Route>
+      <Route path="seller">
+        <Route path='signup' element={<SellerSignup />} />
+        <Route path='login' element={<SellerLogin />} />
       </Route>
 
     </Routes>
