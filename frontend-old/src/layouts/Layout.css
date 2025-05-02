@@ -1,0 +1,17 @@
+.layout {
+    display: flex;
+    flex-direction: column;
+    
+  }
+  
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 100vh;
+  }
+  
+  .dropdown-menu-center {
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+  }

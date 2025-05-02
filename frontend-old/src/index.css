@@ -1,0 +1,33 @@
+.background-palette {
+    background-image: url('./assets/bgPaletten.jpeg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.card-horizontal {
+    flex-direction: row !important;
+}
+
+.bg-wood {
+    background-color: beige; /* Lighter base wooden color */
+    color: saddlebrown; /* Text color to match lighter wood */
+}
+
+.w-100 {
+    width: 100%;
+}
+
+.nav-tabs {
+    width: 100%;
+    display: flex;
+  }
+  
+  .nav-tabs .nav-item {
+    flex: 1;
+    text-align: center;
+  }
+  
+  .nav-tabs .nav-link {
+    width: 100%;
+  }
