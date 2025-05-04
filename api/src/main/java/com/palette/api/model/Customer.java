@@ -6,6 +6,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.User;
+
+import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -23,6 +25,8 @@ public class Customer extends User implements UserDetails {
     private Date createdAt;
     @UpdateTimestamp
     private Date updatedAt;
+    private String token;
+    private ZonedDateTime tokenExpiration;
 
     @OneToMany(mappedBy = "customer")
     private List<Query> queries;

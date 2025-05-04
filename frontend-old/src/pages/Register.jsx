@@ -1,4 +1,4 @@
-import { Form, Row, Col, Button, FloatingLabel, Container, Navbar, Tabs, Tab, Image } from "react-bootstrap";
+import { Form, Row, Col, Button, Nav, FloatingLabel, Container, Navbar, Tabs, Tab, Image } from "react-bootstrap";
 import { useState } from "react";
 import Carousel from 'react-bootstrap/Carousel';
 import { Link } from "react-router-dom"
@@ -65,323 +65,76 @@ export default function Register() {
                 </Button>
             </div>
 
+            <div
+  style={{
+    backgroundColor: "rgba(255, 228, 196, 0.75)",
+    width: "30vw",
+    height: "50vh",
+    display: "flex",
+    flexDirection: "column",
+  }}
+>
+  <Tab.Container defaultActiveKey="mailAngeben">
+    <Nav variant="tabs" fill>
+      <Nav.Item>
+        <Nav.Link eventKey="mailAngeben">E-Mail angeben</Nav.Link>
+      </Nav.Item>
+      <Nav.Item>
+        <Nav.Link eventKey="mailVerifizieren">E-Mail verifizieren</Nav.Link>
+      </Nav.Item>
+      <Nav.Item>
+        <Nav.Link eventKey="datenPersonalisieren">Daten personalisieren</Nav.Link>
+      </Nav.Item>
+    </Nav>
 
-            <div style={{ backgroundColor: "rgba(255, 228, 196, 0.75)", width: "50vw"}}>
-            <Tabs    style={{ width: "50vw" }}   id="controlled-tab-example" 
-            activeKey={key}
-            onSelect={(k) => setKey(k)}>
-            <Tab eventKey="mailAngeben" title="E-Mail angeben" >
-            <Form className="p-4 rounded shadow-lg" style={{ width: "50vw"}} onSubmit={handleSubmit}>
+    <Tab.Content style={{ flexGrow: 1, overflow: "auto" }}>
+        <Tab.Pane eventKey="mailAngeben" style={{ height: "100%" }}>
+            <Form style={{ height: "100%" }} className="p-4 gap-4 d-flex flex-column justify-content-around" onSubmit={handleSubmit}>
+                <div className="d-flex flex-column gap-4">
+                    <Form.Text style={{ color: "saddlebrown" }}>
+                        Gib unten deine E-Mail-Adresse ein: Wir senden dir einen 6-stelligen Code zu, um sie zu verifizieren und dein Konto zu sichern.
+                    </Form.Text>
+                    <FloatingLabel
+                    label="Email address"
+                    controlId="floatingInput"
+                    >
+                        <Form.Control type="email" placeholder="name@example.com"></Form.Control>
+                    </FloatingLabel>
+                    <Button variant="success">
+                        Weiter
+                    </Button>
+                </div>
 
-            <p style={{ color: "saddlebrown" }}>Gib unten deine E-Mail-Adresse ein: Wir senden dir einen 6-stelligen Code zu, um sie zu verifizieren und dein Konto zu sichern.</p>
-
-
-            <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
-            <Form.Label>Email address</Form.Label>
-            <Form.Control type="email" placeholder="name@example.com" />
-            </Form.Group>
-
+                <div className="d-flex flex-column gap-4">
+                    <Form.Text style={{ color: "saddlebrown" }}>
+                        Du hast bereits ein Konto?
+                    </Form.Text>
+                    <Button variant="outline-success">
+                        Login
+                    </Button>
+                </div>
             </Form> 
-            </Tab>
-            <Tab eventKey="mailVerifizieren" title="E-Mail verifizieren">
-            <Form className="p-4 rounded shadow-lg" style={{ backgroundColor: "rgba(255, 228, 196, 0.75)"}} onSubmit={handleSubmit}>
-
-            <h1 style={{ color: "saddlebrown" }}>Paletten bestellen wie Sie Wünschen.</h1>
-
-            <FloatingLabel
-            controlId="inputUsername"
-            label="Username"
-            >
-            <Form.Control
-            type="text"
-            name="username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-            />
-            </FloatingLabel>
-
-            <FloatingLabel
-            controlId="inputPassword"
-            label="Password"
-            className="mb-3"
-            >
-            <Form.Control
-            type="password"
-            name="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            />
-            </FloatingLabel>
+        </Tab.Pane>
+        <Tab.Pane eventKey="second" style={{ height: "100%" }}>
+        Second tab content
+      </Tab.Pane>
+    </Tab.Content>
+  </Tab.Container>
+</div>
 
 
-            <FloatingLabel
-            controlId="inputPassword"
-            label="Repeat Password"
-            className="mb-3"
-            >
-            <Form.Control
-            type="password"
-            name="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            />
-            </FloatingLabel>
-            <FloatingLabel
-            controlId="inputPassword"
-            label="Company"
-            className="mb-3"
-            >
-            <Form.Control
-            type="password"
-            name="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            />
-            </FloatingLabel>
-            <Row>
-            <Col>
-            <FloatingLabel
-            controlId="inputPassword"
-            label="Street"
-            className="mb-3"
-            >
-            <Form.Control
-            type="password"
-            name="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            />
-            </FloatingLabel>
-            </Col>
-            <Col>
-            <FloatingLabel
-            controlId="inputPassword"
-            label="Number"
-            className="mb-3"
-            >
-            <Form.Control
-            type="password"
-            name="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            />
-            </FloatingLabel>
-            </Col>
-            </Row>
-            <Row>
-            <Col>
-            <FloatingLabel
-            controlId="inputPassword"
-            label="ZIP"
-            className="mb-3"
-            >
-            <Form.Control
-            type="password"
-            name="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            />
-            </FloatingLabel>
-            </Col>
-            <Col>
-            <FloatingLabel
-            controlId="inputPassword"
-            label="City"
-            className="mb-3"
-            >
-            <Form.Control
-            type="password"
-            name="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            />
-            </FloatingLabel>
-            </Col>
-            </Row>
-            <Form.Select aria-label="Default select example" className="mb-3">
-            <option>Country</option>
-            <option value="1">Germany</option>
-            <option value="2">Austria</option>
-            <option value="3">Switzerland</option>
-            </Form.Select>
-
-
-
-
-
-            <p className="text-end">If you already have an account, click here to <Link to={'/login'}>login</Link>.</p>
-
-            <Button className="w-100" type="submit" variant="success">
-            Register
-            </Button>
-
-            </Form> 
-            </Tab>
-            <Tab eventKey="datenPersonalisieren" title="Daten personalisieren">
-            <Form className="p-4 rounded shadow-lg" style={{ backgroundColor: "rgba(255, 228, 196, 0.75)"}} onSubmit={handleSubmit}>
-
-            <h1 style={{ color: "saddlebrown" }}>Paletten bestellen wie Sie Wünschen.</h1>
-
-            <FloatingLabel
-            controlId="inputUsername"
-            label="Username"
-            className="mb-3"
-            >
-            <Form.Control
-            type="text"
-            name="username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-            />
-            </FloatingLabel>
-
-            <FloatingLabel
-            controlId="inputPassword"
-            label="Password"
-            className="mb-3"
-            >
-            <Form.Control
-            type="password"
-            name="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            />
-            </FloatingLabel>
-
-
-            <FloatingLabel
-            controlId="inputPassword"
-            label="Repeat Password"
-            className="mb-3"
-            >
-            <Form.Control
-            type="password"
-            name="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            />
-            </FloatingLabel>
-            <FloatingLabel
-            controlId="inputPassword"
-            label="Company"
-            className="mb-3"
-            >
-            <Form.Control
-            type="password"
-            name="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            />
-            </FloatingLabel>
-            <Row>
-            <Col>
-            <FloatingLabel
-            controlId="inputPassword"
-            label="Street"
-            className="mb-3"
-            >
-            <Form.Control
-            type="password"
-            name="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            />
-            </FloatingLabel>
-            </Col>
-            <Col>
-            <FloatingLabel
-            controlId="inputPassword"
-            label="Number"
-            className="mb-3"
-            >
-            <Form.Control
-            type="password"
-            name="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            />
-            </FloatingLabel>
-            </Col>
-            </Row>
-            <Row>
-            <Col>
-            <FloatingLabel
-            controlId="inputPassword"
-            label="ZIP"
-            className="mb-3"
-            >
-            <Form.Control
-            type="password"
-            name="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            />
-            </FloatingLabel>
-            </Col>
-            <Col>
-            <FloatingLabel
-            controlId="inputPassword"
-            label="City"
-            className="mb-3"
-            >
-            <Form.Control
-            type="password"
-            name="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            />
-            </FloatingLabel>
-            </Col>
-            </Row>
-            <Form.Select aria-label="Default select example" className="mb-3">
-            <option>Country</option>
-            <option value="1">Germany</option>
-            <option value="2">Austria</option>
-            <option value="3">Switzerland</option>
-            </Form.Select>
-
-
-
-
-
-            <p className="text-end">If you already have an account, click here to <Link to={'/login'}>login</Link>.</p>
-
-            <Button className="w-100" type="submit" variant="success">
-            Register
-            </Button>
-
-            </Form> 
-            </Tab>
-            </Tabs>
-            </div>
 
 
             <div style={{backgroundColor: "rgba(255, 228, 196, 0.75)", width: "100vw" }} className="d-flex justify-content-center">
                 <footer style={{ width: "75vw" }} className="d-flex flex-row justify-content-between">
-                <Col>
-                    <p>AGB</p>
+                    <Col>
+                        <p style={{ "text-align": "center" }}>AGB</p>
                     </Col>
                     <Col>
-                    <p>Impressum</p>                    
+                        <p style={{ "text-align": "center" }}>Impressum</p>                    
                     </Col>
                     <Col>
-                    <p>Datenschutz</p>
+                        <p style={{ "text-align": "center" }}>Datenschutz</p>
                     </Col>
                 </footer>
 

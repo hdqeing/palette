@@ -1,3 +1,4 @@
+/*
 package com.palette.api.service;
 
 import com.palette.api.model.Seller;
@@ -27,3 +28,4 @@ public class SellerDetailsService implements UserDetailsService {
         return null;
     }
 }
+*/
