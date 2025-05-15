@@ -29,15 +29,15 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data
 
-  pgadmin:
-    image: dpage/pgadmin4
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=admin@beit.de
-      - PGADMIN_DEFAULT_PASSWORD=123456
-    ports:
-      - "80:80"
-    networks:
-      - db-admin
+  # pgadmin:
+  #   image: dpage/pgadmin4
+  #   environment:
+  #     - PGADMIN_DEFAULT_EMAIL=admin@beit.de
+  #     - PGADMIN_DEFAULT_PASSWORD=123456
+  #   ports:
+  #     - "80:80"
+  #   networks:
+  #     - db-admin
 
 networks:
   db-admin:

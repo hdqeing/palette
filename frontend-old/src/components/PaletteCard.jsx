@@ -6,42 +6,30 @@ import Card from 'react-bootstrap/Card';
 
 function PaletteCard(props) {
     return (
-        <Card className='card-horizontal shadow'>
-        <Card.Img variant="top" src={EgPaletten} className='w-50 p-3'/>
-        <Card.Body>
-          <Card.Title>{props.name}</Card.Title>
-          <Form>
-            <Form.Group>
-              <Form.Label>Size</Form.Label>
-              <Form.Select>
-                <option>1200*800*144</option>
-              </Form.Select>
-            </Form.Group>
-            <Form.Group>
-              <Form.Label>Material</Form.Label>
-              <Form.Select>
-                <option>1200*800*144</option>
-              </Form.Select>
-            </Form.Group>
-            <Form.Group>
-              <Form.Label>Zustand</Form.Label>
-              <Form.Select>
-                <option>Neu</option>
-                <option>Gebraucht</option>
-              </Form.Select>
-            </Form.Group>
-            <Form.Group>
-              <Form.Label>Menge</Form.Label>
-              <Form.Control>
-              </Form.Control>
-            </Form.Group>
-            <Button className='mt-3'>
-              Add to Shopping cart
-            </Button>
+              <Card className="h-100 d-flex flex-row">
+                <Card.Img src={category.picture} style={{ width: "200px" }} />
+                <Card.Body>
+                  <Card.Title>{category.name}</Card.Title>
+                  <Form onSubmit={handleAddToCartClick}>
+                    <Form.Control type="hidden" name="category" value={category.name} />
 
-          </Form>
-        </Card.Body>
-      </Card>
+                    <FloatingLabel label="Product Name">
+                      <Form.Select>
+                        {productsInCategory.map((product) => {
+                          return (
+                            <option>{product.name}</option>
+                          )
+                        })}
+
+                      </Form.Select>
+                    </FloatingLabel>
+
+                    <Button variant="primary" type="submit">
+                      Add to shopping cart
+                    </Button>
+                  </Form>
+                </Card.Body>
+              </Card>
     )
 
 }

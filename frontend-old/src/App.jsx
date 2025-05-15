@@ -24,9 +24,7 @@ export default function App(props) {
       <Route 
       path="/" 
       element={
-        <Layout>
           <Home />
-        </Layout>
       }/>
       <Route path="/login" element={
         <Layout>

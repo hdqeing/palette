@@ -13,7 +13,7 @@ import java.util.Date;
 import java.util.List;
 
 @Entity
-public class Customer extends User implements UserDetails {
+public class Customer  {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -26,13 +26,19 @@ public class Customer extends User implements UserDetails {
     @UpdateTimestamp
     private Date updatedAt;
     private String token;
-    private ZonedDateTime tokenExpiration;
 
     @OneToMany(mappedBy = "customer")
     private List<Query> queries;
 
-    public Customer(String username, String password, Collection<? extends GrantedAuthority> authorities) {
-        super(username, password, authorities);
+    public Customer() {
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
     }
 
     public long getId() {
@@ -67,38 +73,5 @@ public class Customer extends User implements UserDetails {
         this.queries = queries;
     }
 
-    @Override
-    public Collection<GrantedAuthority> getAuthorities() {
-        return List.of();
-    }
 
-    @Override
-    public String getPassword() {
-        return "";
-    }
-
-    @Override
-    public String getUsername() {
-        return "";
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
 }

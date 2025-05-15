@@ -1,5 +1,7 @@
 package com.palette.api.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -10,16 +12,29 @@ public class Pallet {
     @Id
     @GeneratedValue
     private long id;
-    private String name;
-    private double length;
-    private double width;
-    private double height;
+    @ManyToOne
+    @JsonIgnore
+    private PalletSort sort;
+    private String quality;
+    private String url;
 
     @OneToMany
+    @JsonIgnore
     private List<QueryPallet> queryPallet;
 
     @OneToMany
+    @JsonIgnore
     private List<OfferPallet> offerPallet;
+
+    public Pallet() {
+    }
+
+
+    public Pallet(PalletSort sort, String quality, String url) {
+        this.sort = sort;
+        this.quality = quality;
+        this.url = url;
+    }
 
     public long getId() {
         return id;
@@ -29,36 +44,28 @@ public class Pallet {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public PalletSort getSort() {
+        return sort;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setSort(PalletSort sort) {
+        this.sort = sort;
     }
 
-    public double getLength() {
-        return length;
+    public String getQuality() {
+        return quality;
     }
 
-    public void setLength(double length) {
-        this.length = length;
+    public void setQuality(String quality) {
+        this.quality = quality;
     }
 
-    public double getWidth() {
-        return width;
+    public String getUrl() {
+        return url;
     }
 
-    public void setWidth(double width) {
-        this.width = width;
-    }
-
-    public double getHeight() {
-        return height;
-    }
-
-    public void setHeight(double height) {
-        this.height = height;
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     public List<QueryPallet> getQueryPallet() {

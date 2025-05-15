@@ -15,14 +15,18 @@ export default function Register() {
 
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-/*     const [email, setEmail] = useState('');
-    const [company, setCompany] = useState('');
-    const [vat, setVat] = useState('');
-    const [street, setStreet] = useState('');
-    const [houseNumber, setHouseNumber] = useState('');
-    const [postalCode, setPostalCode] = useState('');
-    const [country, setCountry] = useState('');
- */
+    const [email, setEmail] = useState('');
+    // const [company, setCompany] = useState('');
+    // const [vat, setVat] = useState('');
+    // const [street, setStreet] = useState('');
+    // const [houseNumber, setHouseNumber] = useState('');
+    // const [postalCode, setPostalCode] = useState('');
+    // const [country, setCountry] = useState('');
+
+    function handleEmailChange(e){
+        setEmail(e.target.value)
+    }
+
 
     const registerUser = async (username, password) => {
         await fetch('http://localhost:8080/register', {
@@ -98,7 +102,7 @@ export default function Register() {
                     label="Email address"
                     controlId="floatingInput"
                     >
-                        <Form.Control type="email" placeholder="name@example.com"></Form.Control>
+                        <Form.Control type="email" placeholder="name@example.com" value={email} onChange={handleEmailChange}></Form.Control>
                     </FloatingLabel>
                     <Button variant="success">
                         Weiter
@@ -115,9 +119,33 @@ export default function Register() {
                 </div>
             </Form> 
         </Tab.Pane>
-        <Tab.Pane eventKey="second" style={{ height: "100%" }}>
-        Second tab content
-      </Tab.Pane>
+        <Tab.Pane eventKey="mailVerifizieren" style={{ height: "100%" }}>
+            <Form style={{ height: "100%" }} className="p-4 gap-4 d-flex flex-column justify-content-around" onSubmit={handleSubmit}>
+                <div className="d-flex flex-column gap-4">
+                    <Form.Text style={{ color: "saddlebrown" }}>
+                        Bitte prüfe jetzt deine Mailbox! Gib den 6-stelligen Verifizierungs-Code ein, der an {email} gesendet wurde. Der Code läuft nach 60 Minuten ab.
+                    </Form.Text>
+                    <FloatingLabel
+                    label="Verification Code"
+                    controlId="floatingInput"
+                    >
+                        <Form.Control placeholder="000000"></Form.Control>
+                    </FloatingLabel>
+                    <Button variant="success">
+                        Weiter
+                    </Button>
+                </div>
+
+                <div className="d-flex flex-column gap-4">
+                    <Form.Text style={{ color: "saddlebrown" }}>
+                        Du hast bereits ein Konto?
+                    </Form.Text>
+                    <Button variant="outline-success">
+                        Login
+                    </Button>
+                </div>
+            </Form>       
+        </Tab.Pane>
     </Tab.Content>
   </Tab.Container>
 </div>

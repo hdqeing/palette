@@ -1,14 +1,25 @@
 import { useState } from "react";
 import Card from "react-bootstrap/Card";
-import Button from "react-bootstrap/Button";
 import ListGroup from "react-bootstrap/ListGroup";
 import CloseButton from "react-bootstrap/CloseButton";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
-import { Image, Offcanvas } from "react-bootstrap";
+import {  FloatingLabel, Offcanvas } from "react-bootstrap";
 import ShoppingCart from "../assets/cart.svg";
 import { useNavigate } from "react-router-dom"; // Import useNavigate for routing
 import AddIcon from '../assets/add.svg'
+
+import { Button, Dropdown, Nav } from "react-bootstrap";
+import { Navbar, Container, Image, Col} from "react-bootstrap";
+import Footer from "../components/Footer";
+import "./Layout.css"; // Import CSS
+import PaletteIcon from "../assets/iconPalette.svg";
+import NotificationIcon from "../assets/notifications.svg";
+import ProfileIcon from "../assets/profile.svg";
+import CartIcon from "../assets/cart.svg";
+import React from "react";
+import { OverlayTrigger, Popover } from 'react-bootstrap';
+import PaletteCard from "../components/PaletteCard";
 
 export default function Home() {
   const [cart, setCart] = useState([]);
@@ -16,124 +27,327 @@ export default function Home() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
 
+
+    const IconToggle = React.forwardRef(({ children, onClick }, ref) => (
+      <a 
+      href="" 
+      ref={ref} 
+      onClick={(e) => {
+        e.preventDefault();
+        onClick(e);
+      }}>
+        {children}
+      </a>
+    ));
+
   const products = [
     {
-      id: 1,
-      category: "Europalette",
-      length: 800,
-      width: 1200,
-      height: 144,
-      state: "new"
+      "id": 1,
+      "name": "EPAL Europalette",
+      "length": 800,
+      "width": 1200,
+      "height": 144,
+      "loadCapacity": 1500,
+      "category": "EPAL Europalette"
     },
     {
-      id: 2,
-      category: "Europalette",
-      length: 800,
-      width: 1200,
-      height: 144,
-      state: "used"
+      "id": 3,
+      "name": "EPAL 2",
+      "length": 1200,
+      "width": 1000,
+      "height": 162,
+      "loadCapacity": 1250,
+      "category": "EPAL 2"
     },
     {
-      id: 3,
-      category: "Holz-Einweg-Palette",
-      length: 800,
-      width: 1200,
-      state: "new"
+      "id": 5,
+      "name": "EPAL 3",
+      "length": 1000,
+      "width": 1200,
+      "height": 144,
+      "loadCapacity": 1500,
+      "category": "EPAL 3"
     },
     {
-      id: 4,
-      category: "Holz-Einweg-Palette",
-      length: 800,
-      width: 1200,
-      state: "used"
+      "id": 6,
+      "name": "EPAL 3",
+      "length": 1000,
+      "width": 1200,
+      "height": 144,
+      "loadCapacity": 1500,
+      "state": "used",
+      "category": "EPAL 3"
     },
     {
-      id: 5,
-      category: "Holz-Einweg-Palette",
-      length: 800,
-      width: 1200,
-      state: "new"
+      "id": 7,
+      "name": "EPAL 6 Halbpalette",
+      "length": 800,
+      "width": 600,
+      "height": 144,
+      "loadCapacity": 750,
+      "state": "new",
+      "category": "EPAL 6 Halbpalette"
     },
     {
-      id: 6,
-      category: "Holz-Einweg-Palette",
-      length: 600,
-      width: 800,
-      state: "new"
+      "id": 8,
+      "name": "EPAL 6 Halbpalette",
+      "length": 800,
+      "width": 600,
+      "height": 144,
+      "loadCapacity": 750,
+      "state": "used",
+      "category": "EPAL 6 Halbpalette"
     },
     {
-      id: 7,
-      category: "IPPC-Holzpaletten",
-      length: 800,
-      width: 1200,
-      state: "new"
+      "id": 9,
+      "name": "EPAL 7 Halbpalette",
+      "length": 800,
+      "width": 600,
+      "height": 163,
+      "loadCapacity": 500,
+      "state": "new",
+      "category": "EPAL 7 Halbpalette"
     },
     {
-      id: 8,
-      category: "IPPC-Holzpaletten",
-      length: 800,
-      width: 1200,
-      state: "used"
+      "id": 10,
+      "name": "EPAL 7 Halbpalette",
+      "length": 800,
+      "width": 600,
+      "height": 163,
+      "loadCapacity": 500,
+      "state": "used",
+      "category": "EPAL 7 Halbpalette"
     },
     {
-      id: 9,
-      category: "IPPC-Holzpaletten",
-      length: 1000,
-      width: 1200,
-      state: "new"
+      "id": 11,
+      "name": "EPAL Gitterbox",
+      "length": 800,
+      "width": 1200,
+      "height": 970,
+      "loadCapacity": 1500,
+      "state": "new",
+      "category": "EPAL Gitterbox"
     },
     {
-      id: 10,
-      category: "IPPC-Holzpaletten",
-      length: 1000,
-      width: 1200,
-      state: "used"
+      "id": 12,
+      "name": "EPAL Gitterbox",
+      "length": 800,
+      "width": 1200,
+      "height": 970,
+      "loadCapacity": 1500,
+      "state": "used",
+      "category": "EPAL Gitterbox"
     },
     {
-      id: 11,
-      category: "IPPC-Holzpaletten",
-      length: 600,
-      width: 800,
-      state: "new"
+      "id": 13,
+      "name": "EPAL CP1 Palette",
+      "length": 1000,
+      "width": 1200,
+      "height": 138,
+      "loadCapacity": null,
+      "state": "new",
+      "category": "EPAL CP-Palette"
     },
     {
-      id: 12,
-      category: "IPPC-Holzpaletten",
-      length: 600,
-      width: 800,
-      state: "used"
+      "id": 14,
+      "name": "EPAL CP1 Palette",
+      "length": 1000,
+      "width": 1200,
+      "height": 138,
+      "loadCapacity": null,
+      "state": "used",
+      "category": "EPAL CP-Palette"
     },
     {
-      id: 13,
-      category: "IPPC-Holzpaletten",
-      length: 400,
-      width: 600,
-      state: "new"
+      "id": 15,
+      "name": "EPAL CP2 Palette",
+      "length": 800,
+      "width": 1200,
+      "height": 138,
+      "loadCapacity": null,
+      "state": "new",
+      "category": "EPAL CP-Palette"
     },
     {
-      id: 14,
-      category: "IPPC-Holzpaletten",
-      length: 400,
-      width: 600,
-      state: "used"
+      "id": 16,
+      "name": "EPAL CP2 Palette",
+      "length": 800,
+      "width": 1200,
+      "height": 138,
+      "loadCapacity": null,
+      "state": "used",
+      "category": "EPAL CP-Palette"
+    },
+    {
+      "id": 17,
+      "name": "EPAL CP3 Palette",
+      "length": 1140,
+      "width": 1140,
+      "height": 138,
+      "loadCapacity": null,
+      "state": "new",
+      "category": "EPAL CP-Palette"
+    },
+    {
+      "id": 18,
+      "name": "EPAL CP3 Palette",
+      "length": 1140,
+      "width": 1140,
+      "height": 138,
+      "loadCapacity": null,
+      "state": "used",
+      "category": "EPAL CP-Palette"
+    },
+    {
+      "id": 19,
+      "name": "EPAL CP4 Palette",
+      "length": 1100,
+      "width": 1300,
+      "height": 138,
+      "loadCapacity": null,
+      "state": "new",
+      "category": "EPAL CP-Palette"
+    },
+    {
+      "id": 20,
+      "name": "EPAL CP4 Palette",
+      "length": 1100,
+      "width": 1300,
+      "height": 138,
+      "loadCapacity": null,
+      "state": "used",
+      "category": "EPAL CP-Palette"
+    },
+    {
+      "id": 21,
+      "name": "EPAL CP5 Palette",
+      "length": 760,
+      "width": 1140,
+      "height": 138,
+      "loadCapacity": null,
+      "state": "new",
+      "category": "EPAL CP-Palette"
+    },
+    {
+      "id": 22,
+      "name": "EPAL CP5 Palette",
+      "length": 760,
+      "width": 1140,
+      "height": 138,
+      "loadCapacity": null,
+      "state": "used",
+      "category": "EPAL CP-Palette"
+    },
+    {
+      "id": 23,
+      "name": "EPAL CP6 Palette",
+      "length": 1200,
+      "width": 1000,
+      "height": 156,
+      "loadCapacity": null,
+      "state": "new",
+      "category": "EPAL CP-Palette"
+    },
+    {
+      "id": 24,
+      "name": "EPAL CP6 Palette",
+      "length": 1200,
+      "width": 1000,
+      "height": 156,
+      "loadCapacity": null,
+      "state": "used",
+      "category": "EPAL CP-Palette"
+    },
+    {
+      "id": 25,
+      "name": "EPAL CP7 Palette",
+      "length": 1300,
+      "width": 1100,
+      "height": 156,
+      "loadCapacity": null,
+      "state": "new",
+      "category": "EPAL CP-Palette"
+    },
+    {
+      "id": 26,
+      "name": "EPAL CP7 Palette",
+      "length": 1300,
+      "width": 1100,
+      "height": 156,
+      "loadCapacity": null,
+      "state": "used",
+      "category": "EPAL CP-Palette"
+    },
+    {
+      "id": 27,
+      "name": "EPAL CP8 Palette",
+      "length": 1140,
+      "width": 1140,
+      "height": 156,
+      "loadCapacity": null,
+      "state": "new",
+      "category": "EPAL CP-Palette"
+    },
+    {
+      "id": 28,
+      "name": "EPAL CP8 Palette",
+      "length": 1140,
+      "width": 1140,
+      "height": 156,
+      "loadCapacity": null,
+      "state": "used",
+      "category": "EPAL CP-Palette"
+    },
+    {
+      "id": 29,
+      "name": "EPAL CP9 Palette",
+      "length": 1140,
+      "width": 1140,
+      "height": 156,
+      "loadCapacity": null,
+      "state": "new",
+      "category": "EPAL CP-Palette"
+    },
+    {
+      "id": 30,
+      "name": "EPAL CP9 Palette",
+      "length": 1140,
+      "width": 1140,
+      "height": 156,
+      "loadCapacity": null,
+      "state": "used",
+      "category": "EPAL CP-Palette"
     }
-  ];
+  ]
 
   const productCategories = [
     {
       id: 1,
-      name: "Europalette",
-      picture: "https://dbschenkereuropac-shop.dbschenker.com/media/db/61/2a/1592302558/Europalette_Hauptbild.jpg?ts=1744892710"
+      name: "EPAL Europalette",
     },
     {
       id: 2,
-      name: "Holz-Einweg-Palette",
-      picture: "https://dbschenkereuropac-shop.dbschenker.com/thumbnail/d0/2c/f6/1592302565/einwegpalette_1_800x800.jpg?ts=1592302920"
+      name: "EPAL 2",
     },
     {
       id: 3,
-      name: "IPPC-Holzpaletten",
-      picture: "https://dbschenkereuropac-shop.dbschenker.com/thumbnail/37/07/9e/1592302564/einwegpaletten_klein_ohneippc_1_800x800.jpg?ts=1592302907"
+      name: "EPAL 3"
+    },
+    {
+      id: 4,
+      name: "EPAL 6 Halbpalette",
+    },
+    {
+      id: 5,
+      name: "EPAL 7 Halbpalette",
+    },
+    {
+      id: 6,
+      name: "EPAL Gitterbox"
+    },
+    {
+      id: 7,
+      name: "EPAL CP-Palette"
     }
   ];
 
@@ -151,10 +365,27 @@ export default function Home() {
     setShowCartFab(true);
   }
 
-  const handleAddToCartClick = (product) => {
-    setSelectedProduct(product);
-    setQuantity(1); // Reset quantity when opening modal
-    setShowModal(true);
+  function handleAddToCartClick(e) {
+    e.preventDefault(); // prevent form from reloading the page
+    const formData = new FormData(e.target);
+    const features = ["category", "length", "width", "height", "state"];
+
+    const data = {};
+    features.forEach((key) => {
+      const value = formData.get(key);
+      if (value) {
+        data[key] = value;
+      }
+    });
+
+    const match = products.find(obj => Object.entries(data).every(([key, value]) => String(obj[key]) === String(value)))
+    console.log(JSON.stringify(data))
+    if (match) {
+      console.log("You selected product ", match.id)
+    } else {
+      console.log("Your Prodct is not valid")
+    }
+
   };
 
   const handleConfirmAddToCart = () => {
@@ -173,110 +404,134 @@ export default function Home() {
     navigate("/supplier");
   };
 
+
+
+
   return (
     <>
+      <header style={{backgroundColor: "bisque", height: "10vh"}}>
+        <Navbar style={{width: "75%", margin: "0 auto"}}>
+          <Col>
+            <Navbar.Brand href="#home">
+              <Image src={PaletteIcon} style={{height: "100px"}}></Image>
+            </Navbar.Brand> 
+          </Col>
+          <Col className="d-flex justify-content-end gap-3">
 
-      {/* Main Content */}
-        {/* Product List */}
-  <div className="row row-cols-1 row-cols-md-2" style={{ width: "75%", margin: "0 auto" }}>
-    {/* Static card that always appears first */}
-    <div className="col mt-3">
-      <Card className="h-100 text-center d-flex flex-row">
-        <div className="d-flex justify-content-center" style={{ width: "200px"}}>
-          <Card.Img variant="top" src={AddIcon} style={{ width: "100px"}}/>
-        </div>
-        
-        <Card.Body>
-          <Card.Title>Custom Product</Card.Title>
-          <Card.Text>Create your own customized product to suit your needs.</Card.Text>
-          <Button variant="success" onClick={() => handleCustomizeProductClick()}>
-            Customize Product
-          </Button>
-        </Card.Body>
-      </Card>
-    </div>
-    
-    {/* Dynamically rendered product cards */}
-    {productCategories.map((category) => {
-      let productsInCategory = products.filter(product => product.category === category.name)
-      return (
-        <div className="col mt-3" key={category.id}>
-          <Card className="h-100 d-flex flex-row">
-            <Card.Img src={category.picture} style={{ width: "200px" }}></Card.Img>
-            <Card.Body>
-              <Card.Title>{category.name}</Card.Title>
-              <Form.Label>Length</Form.Label>
-              <Form.Select>
-                {[...new Set(productsInCategory.map(product => product.length))].map((uniqueLength => (
-                  <option>{uniqueLength}</option>
-                )))}
-              </Form.Select>
-              <Form.Label>Width</Form.Label>
-              <Form.Select>
-                {[...new Set(productsInCategory.map(product => product.width))].map((uniqueWidth => (
-                  <option>{uniqueWidth}</option>
-                )))}
-              </Form.Select>
-              <Form.Label>Height</Form.Label>
-              <Form.Select>
-                {[...new Set(productsInCategory.map(product => product.height))].map((uniqueHeight => (
-                  <option>{uniqueHeight}</option>
-                )))}
-              </Form.Select>
-              <Form.Label>State</Form.Label>
-              <Form.Select>
-                {[...new Set(productsInCategory.map(product => product.state))].map((uniqueState => (
-                  <option>{uniqueState}</option>
-                )))}
-              </Form.Select>
-              
-                
-              
-              
-              
-              <Button variant="primary" onClick={() => handleAddToCartClick(product)}>
-                Add to shopping cart
+            <OverlayTrigger trigger="click" placement="bottom" rootClose
+            overlay={
+              <Popover id="notification-popover" className="notification-popover">
+                <Popover.Body>
+                  You have no new messages.
+                </Popover.Body>
+              </Popover>
+            }>
+              <Image 
+                roundedCircle
+                src={NotificationIcon}
+                style={{height: "35px", padding: "5px", backgroundColor: "orange"}}
+                className="cursor-pointer"
+              />
+            </OverlayTrigger>
+
+            <OverlayTrigger
+            trigger="click"
+            placement="bottom"
+            rootClose
+            overlay={
+              <Popover id="notification-popover" className="notification-popover">
+                <Popover.Body>
+                  <Button className="w-100" variant="success" href="/login">
+                    Sign in
+                  </Button>
+                  <hr />
+                  <Button className="w-100" variant="outline-success" href="/register">
+                    Register
+                  </Button>
+                </Popover.Body>
+              </Popover>
+            }
+            >
+              <Image 
+                roundedCircle
+                src={ProfileIcon}
+                style={{height: "35px", padding: "5px", backgroundColor: "orange"}}
+                className="cursor-pointer"
+              />
+            </OverlayTrigger>
+
+            <Image roundedCircle
+            src={CartIcon}
+            onClick={handleShowCart}
+            style={{height: "35px", padding: "5px", backgroundColor: "orange", cursor: "pointer"}} ></Image>
+
+          </Col>
+        </Navbar>
+      </header>
+
+      <div className="row row-cols-1 row-cols-md-2" style={{ width: "75%", margin: "0 auto" }}>
+        {/* Static card that always appears first */}
+        <div className="col mt-3">
+          <Card className="h-100 text-center d-flex flex-row">
+            <div className="d-flex justify-content-center" style={{ width: "200px"}}>
+              <Card.Img variant="top" src={AddIcon} style={{ width: "100px"}}/>
+            </div>
+            
+            <Card.Body className="d-flex flex-column justify-content-center align-items-center">
+              <Card.Title>Custom Product</Card.Title>
+              <Card.Text>Create your own customized product to suit your needs.</Card.Text>
+              <Button variant="success" onClick={() => handleCustomizeProductClick() } style={{ width: "50%"}}>
+                Customize Product
               </Button>
             </Card.Body>
           </Card>
         </div>
-      )
-    }
-    )}
-  </div>
+        
+        {/* Dynamically rendered product cards */}
+        {productCategories.map((category) => {
+          const productsInCategory = products.filter(product => product.category === category.name);
 
-        {/* Shopping Cart */}
-        <Offcanvas show={showCart} placement='end' onHide={handleHideCart}>
-          <Offcanvas.Header closeButton>
-            <Offcanvas.Title>Shopping Cart</Offcanvas.Title>
-          </Offcanvas.Header>
-          <Offcanvas.Body>
-          <ListGroup>
-            {cart.length === 0 ? (
-              <ListGroup.Item className="text-muted">Cart is empty</ListGroup.Item>
-            ) : (
-              cart.map((item, index) => (
-                <ListGroup.Item key={index} className="d-flex justify-content-between align-items-center">
-                  {item.title} (x{item.quantity})
-                  <CloseButton onClick={() => removeFromCart(index)} />
-                </ListGroup.Item>
-              ))
-            )}
-          </ListGroup>
-          {cart.length > 0 && (
-            <Button
-              variant="success"
-              className="w-100 mt-3"
-              onClick={handleNextStep}
-            >
-              Next Step
-            </Button>
+          return (
+            <div className="col mt-3" key={category.id}>
+              <PaletteCard></PaletteCard>
+
+            </div>
+          );
+})}
+
+      </div>
+
+      <Offcanvas show={showCart} placement='end' onHide={handleHideCart}>
+        <Offcanvas.Header closeButton>
+          <Offcanvas.Title>Shopping Cart</Offcanvas.Title>
+        </Offcanvas.Header>
+        <Offcanvas.Body>
+        <ListGroup>
+          {cart.length === 0 ? (
+            <ListGroup.Item className="text-muted">Cart is empty</ListGroup.Item>
+          ) : (
+            cart.map((item, index) => (
+              <ListGroup.Item key={index} className="d-flex justify-content-between align-items-center">
+                {item.title} (x{item.quantity})
+                <CloseButton onClick={() => removeFromCart(index)} />
+              </ListGroup.Item>
+            ))
           )}
+        </ListGroup>
+        {cart.length > 0 && (
+          <Button
+            variant="success"
+            className="w-100 mt-3"
+            onClick={handleNextStep}
+          >
+            Next Step
+          </Button>
+        )}
 
-          </Offcanvas.Body>
+        </Offcanvas.Body>
 
 
-        </Offcanvas>
+      </Offcanvas>
 
 
       {/* Quantity Selection Modal */}
