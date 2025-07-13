@@ -1,5 +1,7 @@
 import './index.css'
 import { Routes, Route } from 'react-router-dom';
+import { CartProvider } from './contexts/CartContext';
+import { AuthProvider } from './contexts/AuthContext';
 import Login from './pages/Login'
 import Home from './pages/Home';
 import Register from './pages/Register';
@@ -20,57 +22,59 @@ import SellerLogin from './pages/SellerLogin';
 
 export default function App(props) {
   return (
-    <Routes>
-      <Route 
-      path="/" 
-      element={
-          <Home />
-      }/>
-      <Route path="/login" element={
-        <Layout>
-          <Login />
-        </Layout>
-      }/>
-      <Route path="/register" element={
-          <Register />
-      }/>
-      <Route path="/cart" element={
-        <Layout>
-          <Cart />
-        </Layout>
-      }>
-      </Route>
-      <Route path="/supplier" element={
-        <Layout>
-          <Supplier />
-        </Layout>
-      }>
-      </Route>
-      <Route path="/order" element={
-        <Layout>
-          <Order />
-        </Layout>
-      }>
-      </Route>  
-      <Route path="/query" element={
-        <Layout>
-          <Query />
-        </Layout>
-      }>
-      </Route> 
-      <Route path="seller" element={<SellerLayout />}>
-        <Route index element={<SellerHome />} />
-        <Route path='query' element={<SellerQuery />} />
-        <Route path='stats' element={<SellerStats />} />
-        <Route path='profile' element={<SellerProfile />} />
-        <Route path='mail' element={<SellerMail />} />
-        <Route path='order' element={<SellerOrder />} />
-      </Route>
-      <Route path="seller">
-        <Route path='signup' element={<SellerSignup />} />
-        <Route path='login' element={<SellerLogin />} />
-      </Route>
+    <AuthProvider>
+      <CartProvider>
+        <Routes>
+          {/* Customer routes with Layout and Cart access */}
+          <Route path="/" element={
+            <Layout>
+              <Home />
+            </Layout>
+          }/>
+          
+          <Route path="/login" element={<Login />}/>
+          <Route path="/register" element={<Register />}/>
+          
+          <Route path="/cart" element={
+            <Layout>
+              <Cart />
+            </Layout>
+          }/>
+          
+          <Route path="/supplier" element={
+            <Layout>
+              <Supplier />
+            </Layout>
+          }/>
+          
+          <Route path="/order" element={
+            <Layout>
+              <Order />
+            </Layout>
+          }/>
+          
+          <Route path="/query" element={
+            <Layout>
+              <Query />
+            </Layout>
+          }/>
 
-    </Routes>
+          {/* Seller routes - no cart needed */}
+          <Route path="seller" element={<SellerLayout />}>
+            <Route index element={<SellerHome />} />
+            <Route path='query' element={<SellerQuery />} />
+            <Route path='stats' element={<SellerStats />} />
+            <Route path='profile' element={<SellerProfile />} />
+            <Route path='mail' element={<SellerMail />} />
+            <Route path='order' element={<SellerOrder />} />
+          </Route>
+          
+          <Route path="seller">
+            <Route path='signup' element={<SellerSignup />} />
+            <Route path='login' element={<SellerLogin />} />
+          </Route>
+        </Routes>
+      </CartProvider>
+    </AuthProvider>
   );
 }

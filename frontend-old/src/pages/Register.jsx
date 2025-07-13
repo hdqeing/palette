@@ -146,6 +146,41 @@ export default function Register() {
                 </div>
             </Form>       
         </Tab.Pane>
+        <Tab.Pane eventKey="datenPersonalisieren" style={{ height: "100%" }}>
+            <Form style={{ height: "100%" }} className="p-4 gap-4 d-flex flex-column justify-content-around" onSubmit={handleSubmit}>
+                <div className="d-flex flex-column gap-4">
+                    <Form.Text style={{ color: "saddlebrown" }}>
+                        Geben Sie ein Passwort ein. Sie brauchen Ihre Email Addresse und Passwort um einzuloggen.                        
+                    </Form.Text>
+                    <FloatingLabel
+                    label="Passwort"
+                    controlId="floatingInput"
+                    >
+                        <Form.Control type="password" placeholder="******"></Form.Control>
+                    </FloatingLabel>
+
+                    <FloatingLabel
+                    label="Passwort wiederholen"
+                    controlId="floatingInput"
+                    >
+                        <Form.Control type="password" placeholder="******"></Form.Control>
+                    </FloatingLabel>
+
+                    <Button variant="success">
+                        Registerieren
+                    </Button>
+                </div>
+
+                <div className="d-flex flex-column gap-4">
+                    <Form.Text style={{ color: "saddlebrown" }}>
+                        Du hast bereits ein Konto?
+                    </Form.Text>
+                    <Button variant="outline-success">
+                        Login
+                    </Button>
+                </div>
+            </Form>       
+        </Tab.Pane>
     </Tab.Content>
   </Tab.Container>
 </div>
