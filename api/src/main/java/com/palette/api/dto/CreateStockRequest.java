@@ -1,0 +1,17 @@
+package com.palette.api.dto;
+
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Getter
+@Setter
+public class CreateStockRequest {
+    private Long paletteId;
+    private int quantity;
+    private double price;
+    private List<Long> photoIds = new ArrayList<>();
+}

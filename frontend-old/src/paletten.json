@@ -1,0 +1,36 @@
+{
+    "paletten": [
+        {
+            "name": "Europalette",
+            "length": 1200,
+            "width": 800,
+            "height": 144,
+            "material": "wood",
+            "state": "used"
+        },
+        {
+            "name": "Europalette",
+            "length": 1200,
+            "width": 800,
+            "height": 108,
+            "material": "wood",
+            "state": "new"
+        },
+        {
+            "name": "Duesseldorfer",
+            "length": 600,
+            "width": 450,
+            "height": 108,
+            "material": "wood",
+            "state": "new"
+        },
+        {
+            "name": "Duesseldorfer",
+            "length": 600,
+            "width": 450,
+            "height": 144,
+            "material": "metal",
+            "state": "used"
+        }
+    ]
+}

@@ -1,0 +1,45 @@
+services:
+
+  
+
+  backend:
+    image: dingqinghe/api
+    env_file:
+      - ".env"
+    depends_on:
+      - database
+    ports:
+      - "8080:8081"
+    networks:
+      - app
+
+
+  database:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: 123456
+    hostname: dbserver
+    ports:
+      - "5432:5432"
+    networks:
+      - db-admin
+      - app
+    volumes:
+      - db-data:/var/lib/postgresql
+
+  # pgadmin:
+  #   image: dpage/pgadmin4
+  #   environment:
+  #     - PGADMIN_DEFAULT_EMAIL=admin@beit.de
+  #     - PGADMIN_DEFAULT_PASSWORD=123456
+  #   ports:
+  #     - "80:80"
+  #   networks:
+  #     - db-admin
+
+networks:
+  db-admin:
+  app:
+
+volumes:
+  db-data:
