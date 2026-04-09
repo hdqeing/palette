@@ -13,7 +13,7 @@ function PaletteCard({ id, name, length, width, height, onSubmitPallet }) {
   const [selectedPallet, setSelectedPallet] = useState(null)
 
   useEffect(() => {
-    fetch(`http://localhost:8080/sort/${id}/pallets`)
+    fetch(`http://localhost:8080/v1/pallets/sort/${id}/pallets`)
       .then(response => response.json())
       .then(data => {
         setPallets(data); 

@@ -3,13 +3,9 @@ services:
   
 
   backend:
-    image: palette/api
-    environment:
-      - DB_SERVER=dbserver
-      - DB_PORT=5432
-      - DB_NAME=postgres
-      - DB_USERNAME=postgres
-      - DB_PASSWORD=123456
+    image: dingqinghe/api
+    env_file:
+      - ".env"
     depends_on:
       - database
     ports:
@@ -29,7 +25,7 @@ services:
       - db-admin
       - app
     volumes:
-      - db-data:/var/lib/postgresql/data
+      - db-data:/var/lib/postgresql
 
   # pgadmin:
   #   image: dpage/pgadmin4

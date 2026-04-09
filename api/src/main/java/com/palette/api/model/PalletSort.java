@@ -1,13 +1,8 @@
 package com.palette.api.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-
-import java.util.List;
 
 @Entity
 @Data
@@ -20,6 +15,9 @@ public class PalletSort {
     private double length;
     private double width;
     private double height;
+    private boolean isPrivate;
+    @ManyToOne
+    private Company owner;
 
     public PalletSort() {
     }

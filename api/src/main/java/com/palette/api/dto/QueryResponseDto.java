@@ -1,23 +1,21 @@
 package com.palette.api.dto;
 
+import com.palette.api.model.Company;
+import com.palette.api.model.Pallet;
 import lombok.Data;
 import java.time.ZonedDateTime;
 import java.util.List;
 
 @Data
 public class QueryResponseDto {
-    private Long id;
-    private boolean isSellerApproved;
-    private boolean isBuyerApproved;
-    private Long batchId;
-    private ZonedDateTime createdAt;
-    private List<QueryItemDto> items;
+    private List<Pallet> pallets;
+    private List<Integer> quantity;
+    private List<Offer> offers;
 
     @Data
-    public static class QueryItemDto {
-        private Long palletId;
-        private String palletName; // assuming Pallet has a name field
-        private Integer quantity;
-        private Double price;
+    private class Offer {
+        private Company company;
+        private List<Double> price;
     }
+
 }

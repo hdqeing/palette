@@ -18,13 +18,15 @@ public class SellerQueryResponseDto {
     public static class BuyerInfoDto {
         private Long id;
         private String name;
-        private String email;
-        private String address;
-        // Add other buyer fields you want to include
+        private String street;
+        private String houseNumber;
+        private String postalCode;
+        private String city;
     }
 
     @Data
     public static class QueryItemDetailDto {
+        private Long queryPalletId;
         private Long palletId;
         private String palletQuality;
         private String palletUrl;

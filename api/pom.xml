@@ -31,6 +31,11 @@
 	</properties>
 	<dependencies>
 		<dependency>
+			<groupId>com.azure</groupId>
+			<artifactId>azure-storage-blob</artifactId>
+			<version>12.23.0</version>
+		</dependency>
+		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<version>1.18.38</version>
@@ -70,6 +75,7 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
+			<version>3.5.13</version>
 		</dependency>
 
 		<dependency>
@@ -107,6 +113,16 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<version>3.5.13</version>
+				<configuration>
+					<imageName>docker.io/dingqinghe/api</imageName>
+					<imagePlatform>linux/amd64</imagePlatform>
+					<image>
+						<env>
+							<BP_JVM_VERSION>25</BP_JVM_VERSION>
+						</env>
+					</image>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.liquibase</groupId>

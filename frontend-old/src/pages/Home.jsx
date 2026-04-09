@@ -1,27 +1,15 @@
 import { useEffect, useState } from "react";
 import Card from "react-bootstrap/Card";
-import ListGroup from "react-bootstrap/ListGroup";
-import CloseButton from "react-bootstrap/CloseButton";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
-import {  FloatingLabel, Offcanvas } from "react-bootstrap";
-import ShoppingCart from "../assets/cart.svg";
+import {  FloatingLabel, ModalBody, ModalFooter, ModalTitle } from "react-bootstrap";
 import { useNavigate } from "react-router-dom"; // Import useNavigate for routing
 import AddIcon from '../assets/add.svg'
 
-import { Button, Dropdown, Nav } from "react-bootstrap";
-import { Navbar, Container, Image, Col} from "react-bootstrap";
-import Footer from "../components/Footer";
-import "./Layout.css"; // Import CSS
-import PaletteIcon from "../assets/iconPalette.svg";
-import NotificationIcon from "../assets/notifications.svg";
-import ProfileIcon from "../assets/profile.svg";
-import CartIcon from "../assets/cart.svg";
+import { Button } from "react-bootstrap";
 import React from "react";
-import { OverlayTrigger, Popover } from 'react-bootstrap';
 import PaletteCard from "../components/PaletteCard";
-import ShoppingCartItem from "../components/ShoppingCartItem";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useCart } from "../contexts/CartContext";
 
 
@@ -33,9 +21,11 @@ const { addToCart } = useCart(); // Destructure addToCart from the context
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [sorts, setSorts] = useState([]);
+  const [showAddPaletteModal, setShowAddPaletteModal] = useState(false);
+  const apiUrl = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
-    fetch("http://localhost:8080/sorts")
+    fetch(`${apiUrl}/v1/pallets/sorts`)
       .then(response => response.json())
       .then(data => setSorts(data))
       .catch(error => console.error("Error fetching sorts:", error));
@@ -111,13 +101,17 @@ const { addToCart } = useCart(); // Destructure addToCart from the context
     setShowModal(true);
   }
 
+  const handleShowAddPaletteModal = () => {
+    setShowAddPaletteModal(true)
+  }
+
 
 
 
   return (
     <>
 
-      <div className="row row-cols-1 row-cols-md-2" style={{ width: "75%", margin: "0 auto" }}>
+      <div className="row row-cols-1 row-cols-md-2" style={{ width: "75%" }}>
         {/* Static card that always appears first */}
         <div className="col mt-3">
           <Card className="h-100 text-center d-flex flex-row">
@@ -126,10 +120,9 @@ const { addToCart } = useCart(); // Destructure addToCart from the context
             </div>
             
             <Card.Body className="d-flex flex-column justify-content-center align-items-center">
-              <Card.Title>Custom Product</Card.Title>
-              <Card.Text>Create your own customized product to suit your needs.</Card.Text>
-              <Button variant="success" onClick={() => handleCustomizeProductClick() } style={{ width: "50%"}}>
-                Customize Product
+              <Card.Title>Brauchen Sie Paletten in Sondergröße? </Card.Title>
+              <Button variant="success" onClick={() => handleShowAddPaletteModal() }>
+                Palette hinzufügen
               </Button>
             </Card.Body>
           </Card>
@@ -154,6 +147,59 @@ const { addToCart } = useCart(); // Destructure addToCart from the context
         }
 
       </div>
+
+      <Modal show={showAddPaletteModal} centered>
+        <Modal.Header className="justify-content-center">
+          <ModalTitle>Palette hinzufügen</ModalTitle>
+        </Modal.Header>
+        <ModalBody>
+          <Form className="d-flex flex-column gap-2">
+            <Form.Group>
+              <FloatingLabel label="Name">
+                <Form.Control></Form.Control>
+              </FloatingLabel>
+              <Form.Text>Geben Sie ein Name für Ihre Palette, damit Sie nächste mal es schneller findet.</Form.Text>
+            </Form.Group>
+
+            <Form.Group>
+              <FloatingLabel label="Länge">
+                <Form.Control></Form.Control>
+              </FloatingLabel>
+            </Form.Group>
+            
+            <Form.Group>
+              <FloatingLabel label="Breite">
+                <Form.Control></Form.Control>
+              </FloatingLabel>
+            </Form.Group>
+
+            <Form.Group>
+              <FloatingLabel label="Bemerkung">
+                <Form.Control as="textarea"></Form.Control>
+              </FloatingLabel>
+            </Form.Group>
+
+            <Form.Group>
+              <Form.Label>Datei hochladen</Form.Label>
+                <Form.Control type="file" multiple></Form.Control>
+            </Form.Group>
+
+            <Form.Group>
+              <FloatingLabel label="Anzahl">
+                <Form.Control type="number"></Form.Control>
+              </FloatingLabel>
+            </Form.Group>
+
+
+          </Form>
+
+        </ModalBody>
+        <ModalFooter className="d-flex justify-content-between">
+          <Button variant="outline-danger" onClick={() => setShowAddPaletteModal(false)}>Zurück</Button>
+          <Button variant="success">Weiter</Button>
+        </ModalFooter>
+      </Modal>
+
 
 
 

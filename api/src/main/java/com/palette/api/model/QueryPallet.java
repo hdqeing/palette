@@ -18,5 +18,4 @@ public class QueryPallet {
     private Query query;
 
     private Integer quantity;
-    private Double price;
 }

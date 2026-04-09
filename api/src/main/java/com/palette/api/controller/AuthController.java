@@ -1,174 +1,155 @@
 package com.palette.api.controller;
 
 import com.palette.api.dto.*;
-import com.palette.api.exception.CustomerNotFoundException;
+import com.palette.api.exception.EmployeeNotFoundException;
 import com.palette.api.model.Employee;
 import com.palette.api.repository.EmployeeRepository;
+import com.palette.api.service.MailService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.jwt.JwtClaimsSet;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.*;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.SecureRandom;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Optional;
-import java.util.Random;
 
 @SecurityRequirement(name = "bearerAuth")
 
-@RequestMapping("/auth")
+@RequestMapping("/v1/auth")
 @RestController
+@CrossOrigin(
+        origins = "http://localhost:5173",
+        allowCredentials = "true",
+        methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS}
+)
 public class AuthController {
 
     @Autowired
-    private JavaMailSender emailSender;
+    private MailService mailService;
 
-    private final PasswordEncoder passwordEncoder;
-    private final EmployeeRepository employeeRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private EmployeeRepository employeeRepository;
+
+    @Autowired
+    private JwtDecoder jwtDecoder;
+
     @Autowired
     JwtEncoder jwtEncoder;
 
-    public AuthController( PasswordEncoder passwordEncoder, EmployeeRepository employeeRepository) {
-        this.passwordEncoder = passwordEncoder;
-        this.employeeRepository = employeeRepository;
+    @PostMapping("/email")
+    public ResponseEntity<String> newEmployee(@RequestBody EmailVerificationRequest request){
+        String email = request.getEmail();
+        if (employeeRepository.existsByEmail(email)){
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("This Email has already been registered!");
+        } else {
+            String verificationCode = String.format("%06d", (new SecureRandom()).nextInt(1_000_000));
+            ZonedDateTime expireAt = ZonedDateTime.now(ZoneId.systemDefault()).plusMinutes(30);
+            Employee newEmployee = new Employee(email, verificationCode, expireAt);
+            employeeRepository.save(newEmployee);
+            mailService.sendVerificationCode(newEmployee, verificationCode);
+            return ResponseEntity.ok().body("This Email is effective.");
+        }
     }
-
-    @PostMapping("/email/verification")
-    public ResponseEntity<String> verifyEmail(@RequestParam String email) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("auth@palette365.de");
-        message.setTo(email);
-        message.setSubject("Verification Code");
-        Random random = new Random();
-        String code = String.valueOf(100000 + random.nextInt(900000));
-        return ResponseEntity.ok("An Email with verification code has been sent, click Next to proceed.");
-    }
-
-    @PostMapping("/seller/email/verification")
-    public ResponseEntity<EmailVerificationResponse> verifySellerEmail(@RequestBody EmailVerificationRequest request) {
-        String email = request.getEmail();
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("auth@palette365.de");
-        message.setTo(email);
-        message.setSubject("Verification Code");
-        Random random = new Random();
-        String code = String.valueOf(100000 + random.nextInt(900000));
-/*        Seller newSeller = new Seller();
-        newSeller.setEmail(email);
-        newSeller.setToken(code);
-        sellerRepository.save(newSeller);
-        message.setText("Your code is " + code);
-        emailSender.send(message);*/
-        return ResponseEntity.ok(new EmailVerificationResponse("An Email with verification code has been sent, click Next to proceed."));
-    }
-
-
-/*    @PostMapping("/seller/token/verification")
-    public ResponseEntity<EmailVerificationResponse> verifySellerToken(@RequestBody TokenVerificationRequest request) {
-        String email = request.getEmail();
-        String token = request.getToken();
-        Optional<Seller> seller = sellerRepository.findByEmail(email);
-        return seller.map(seller1 -> {
-            if (Objects.equals(seller1.getToken(), token)){
-                return ResponseEntity.ok(new EmailVerificationResponse("Congratulations, your account has been verified"));
-            } else {
-                return ResponseEntity.badRequest().body(new EmailVerificationResponse("Sorry, your token is not correct"));
-            }
-        }).orElseThrow(() -> new CustomerNotFoundException(email));
-    }*/
-
-/*    @PostMapping("/seller/password")
-    public ResponseEntity<EmailVerificationResponse> setSellerPassword(@RequestBody SetPasswordRequest request) {
-        String email = request.getEmail();
-        String password = request.getPassword();
-        Optional<Seller> seller = sellerRepository.findByEmail(email);
-        return seller.map(seller1 -> {
-            seller1.setPassword(passwordEncoder.encode(password));
-            sellerRepository.save(seller1);
-            return ResponseEntity.ok(new EmailVerificationResponse("Password set"));
-        }).orElseThrow(() -> new CustomerNotFoundException(email));
-
-    }*/
-
-/*    @PostMapping("/seller/login")
-    public ResponseEntity<String> sellerLogin(@RequestBody LoginRequest request) {
-        String email = request.getEmail();
-        String password = request.getPassword();
-        Instant now = Instant.now();
-        long expiry = 36000L;
-        Optional<Seller> seller = sellerRepository.findByEmail(email);
-        return seller.map(seller1 -> {
-            if (passwordEncoder.matches(password, seller1.getPassword())){
-                JwtClaimsSet claims = JwtClaimsSet.builder().issuer("self").issuedAt(now).expiresAt(now.plusSeconds(expiry)).subject(seller1.getEmail()).build();
-                String token = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
-                return ResponseEntity.ok(token);
-            } else {
-                return ResponseEntity.badRequest().body("Sorry, Password is wrong");
-            }
-        }).orElseThrow(() -> new SellerNotFoundException(email));
-
-    }*/
-
-/*    @PostMapping("/token/verification")
-    public ResponseEntity<String> verifyToken(@RequestParam String email, @RequestParam String token) {
-        Optional<Customer> customer = customerRepository.findByEmail(email);
-        return customer.map(customer1 -> {
-            if (Objects.equals(customer1.getToken(), token)){
-                return ResponseEntity.ok("Congratulations, your account has been verified");
-            } else {
-                return ResponseEntity.badRequest().body("Sorry, your token is not correct");
-            }
-        }).orElseThrow(() -> new CustomerNotFoundException(email));
-    }*/
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody RegisterRequest request){
-
-        return ResponseEntity.ok("Congratulations, you have registered successfully");
+    public ResponseEntity<String> updateEmployee(@RequestBody RegisterRequest request){
+        String email = request.getEmail();
+        String verificationCode = request.getVerificationCode();
+        Employee employee = employeeRepository.findByEmail(email).orElseThrow(() -> new EmployeeNotFoundException(email));
+        if (!checkVerificationCode(employee, verificationCode)) {
+            return ResponseEntity.badRequest().body("Your verification code is not valid.");
+        } else {
+            employee.setPassword(passwordEncoder.encode(request.getPassword()));
+            employeeRepository.save(employee);
+            return ResponseEntity.ok().body("Your password is saved");
+        }
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody RegisterRequest request){
-        Instant now = Instant.now();
-        long expiry = 36000L;
-        Optional<Employee> employeeOptional = employeeRepository.findByEmail(request.getEmail());
-        return employeeOptional.map(employee -> {
-            if (passwordEncoder.matches(request.getPassword(), employee.getPassword())){
-                JwtClaimsSet claims = JwtClaimsSet.builder().issuer("self").issuedAt(now).expiresAt(now.plusSeconds(expiry)).subject(employee.getEmail()).build();
-                String token = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
-                return ResponseEntity.ok(token);
-            } else {
-                return ResponseEntity.badRequest().body("Sorry, Password is wrong");
-            }
-        }).orElseThrow(() -> new CustomerNotFoundException(request.getEmail()));
+    public ResponseEntity<String> login(@RequestBody LoginRequest request, HttpServletResponse response){
+        String email = request.getEmail();
+        String password = request.getPassword();
+        Employee employee = employeeRepository.findByEmail(email).orElseThrow(() -> new EmployeeNotFoundException(email));
+
+        if (passwordEncoder.matches(password, employee.getPassword())){
+            Instant now = Instant.now();
+            long expiry = 36000L;
+
+            JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();
+            JwtClaimsSet claims = JwtClaimsSet.builder().issuer("self").issuedAt(now).expiresAt(now.plusSeconds(expiry)).subject(employee.getEmail()).build();
+            String token = jwtEncoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();
+
+            Cookie jwtCookie = new Cookie("jwt-token", token);
+            jwtCookie.setMaxAge((int) expiry); // Cookie expiry matches JWT expiry
+            jwtCookie.setPath("/"); // Available for entire application
+            jwtCookie.setHttpOnly(true); // Prevents XSS attacks
+            // jwtCookie.setSecure(true); // Only send over HTTPS (remove for local development)
+            // jwtCookie.setSameSite("Strict"); // Uncomment if using Spring Boot 2.6+ or add manually
+
+            // Add cookie to response
+            response.addCookie(jwtCookie);
+            return ResponseEntity.ok(token);
+        } else {
+            return ResponseEntity.badRequest().body("Sorry, Password is wrong");
+        }
+
     }
 
-    @PostMapping("/seller/login")
-    public ResponseEntity<String> sellerLogin(@RequestBody RegisterRequest request){
-        Instant now = Instant.now();
-        long expiry = 36000L;
-        Optional<Employee> employeeOptional = employeeRepository.findByEmail(request.getEmail());
-        return employeeOptional.map(employee -> {
-            if (passwordEncoder.matches(request.getPassword(), employee.getPassword())){
-                JwtClaimsSet claims = JwtClaimsSet.builder().issuer("self").issuedAt(now).expiresAt(now.plusSeconds(expiry)).subject(employee.getEmail()).build();
-                String token = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
-                return ResponseEntity.ok(token);
-            } else {
-                return ResponseEntity.badRequest().body("Sorry, Password is wrong");
-            }
-        }).orElseThrow(() -> new CustomerNotFoundException(request.getEmail()));
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(HttpServletResponse response){
+
+            Cookie jwtCookie = new Cookie("jwt-token", "");
+            jwtCookie.setPath("/"); // Available for entire application
+            jwtCookie.setHttpOnly(true); // Prevents XSS attacks
+            // jwtCookie.setSecure(true); // Only send over HTTPS (remove for local development)
+            // jwtCookie.setSameSite("Strict"); // Uncomment if using Spring Boot 2.6+ or add manually
+
+            // Add cookie to response
+            response.addCookie(jwtCookie);
+            return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/profile")
-    public String getProfile(Authentication authentication){
-        return authentication.getName();
+    private boolean checkVerificationCode(Employee employee, String verificationCode) {
+        if (ZonedDateTime.now(ZoneId.systemDefault()).isAfter(employee.getExpireAt())) {
+            return false;
+        }
+        return verificationCode.equals(employee.getVerificationCode());
+    }
 
+
+    @GetMapping("/profile")
+    public ResponseEntity<?> getProfile(@CookieValue("jwt-token") String token) {
+        try {
+            // Decode and validate JWT token
+            Jwt jwt = jwtDecoder.decode(token);
+            String email = jwt.getSubject();
+
+            // Find employee by email
+            Employee employee = employeeRepository.findByEmail(email).orElseThrow(() -> new EmployeeNotFoundException(email));
+            return ResponseEntity.ok(employee);
+
+
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Invalid or expired token");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An error occurred while retrieving profile");
+        }
     }
 
 }

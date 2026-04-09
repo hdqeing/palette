@@ -1,0 +1,63 @@
+# macOS
+
+.DS_Store
+
+# Node.js (all subprojects)
+
+node_modules/
+**/node_modules/
+
+# Logs
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment variables
+
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Build outputs
+
+dist/
+build/
+.next/
+out/
+coverage/
+**/dist/
+**/build/
+**/.next/
+**/out/
+**/coverage/
+
+# Dependency lock files (optional – keep if you want reproducible builds)
+
+# package-lock.json
+
+# yarn.lock
+
+# pnpm-lock.yaml
+
+# Editor / IDE
+
+.vscode/
+.idea/
+
+# Temporary files
+
+*.log
+*.tmp
+*.swp
+
+# Docker (optional)
+
+*.pid
+docker-compose.override.yml
+
+# Misc
+
+*.local

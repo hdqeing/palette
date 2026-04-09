@@ -1,10 +1,11 @@
 package com.palette.api.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import jakarta.persistence.*;
 import lombok.Data;
+
+import java.lang.reflect.Array;
+import java.util.List;
 
 @Data
 @Entity
@@ -18,6 +19,17 @@ public class Company {
     private String houseNumber;
     private String postalCode;
     private String city;
-    private String url;
-    private boolean isSeller;
+    private String homepage;
+    private String vat;
+    private boolean verified;
+    private boolean isSeller = false;
+    private boolean isShipping = false;
+    private boolean isGermanyPickUp = false;
+    private boolean isEuPickUp = false;
+    private boolean isGermanyDeliver = false;
+    private boolean isEuDeliver = false;
+
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference
+    private List<Photo> photos;
 }

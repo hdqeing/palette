@@ -8,20 +8,34 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Configuration
+@Profile("local")
 public class LoadDatabase {
     private  static final Logger log = LoggerFactory.getLogger(LoadDatabase.class);
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private StockRepository stockRepository;
+
     @Bean
-    CommandLineRunner initDatabase(PalletRepository palletRepository, PalletSortRepository palletSortRepository, CompanyRepository companyRepository, EmployeeRepository employeeRepository){
+    CommandLineRunner initDatabase(
+            PalletRepository palletRepository,
+            PalletSortRepository palletSortRepository,
+            CompanyRepository companyRepository,
+            EmployeeRepository employeeRepository,
+            QueryRepository queryRepository,
+            QueryPalletRepository queryPalletRepository,
+            QuerySellerRepository querySellerRepository,
+            QueryPalletPriceRepository queryPalletPriceRepository){
         return args -> {
 //          Add EPAL Europalette
             PalletSort epalEuropaletteSort = new PalletSort("EPAL Europalette", 800, 1200, 144);
@@ -433,7 +447,11 @@ public class LoadDatabase {
             c1.setHouseNumber("5");
             c1.setPostalCode("37603");
             c1.setCity("Holzminden");
-            c1.setUrl("https://www.trucknews.com/wp-content/uploads/2023/04/happy-trucker-istoc.jpg");
+            c1.setHomepage("http://www.schaefer-transport.de/");
+            c1.setVat("DE116008461");
+            c1.setGermanyPickUp(false);
+            c1.setEuPickUp(false);
+            c1.setGermanyDeliver(false);
             companyRepository.save(c1);
 
             Employee e1 = new Employee();
@@ -442,6 +460,7 @@ public class LoadDatabase {
             e1.setPassword(passwordEncoder.encode("123456"));
             e1.setFirstName("Jens");
             e1.setLastName("Groß");
+            e1.setPreferredLanguage("DE");
             employeeRepository.save(e1);
 
             Company c2 = new Company();
@@ -450,7 +469,9 @@ public class LoadDatabase {
             c2.setHouseNumber("79");
             c2.setPostalCode("49849");
             c2.setCity("Wilsum");
-            c2.setUrl("https://assets.coco-online.de/39721717534580-9juWHPk9/auetaler-palettenservice-01.jpg");
+            c2.setHomepage("https://www.alpha-paletten.de/");
+            c2.setVat("DE370160257");
+            c2.setVerified(true);
             c2.setSeller(true);
             companyRepository.save(c2);
 
@@ -460,6 +481,7 @@ public class LoadDatabase {
             e2.setPassword(passwordEncoder.encode("123456"));
             e2.setFirstName("Johann-Heinrich");
             e2.setLastName("Ensink");
+            e2.setPreferredLanguage("DE");
             employeeRepository.save(e2);
 
             Company c3 = new Company();
@@ -468,17 +490,218 @@ public class LoadDatabase {
             c3.setHouseNumber("5A");
             c3.setPostalCode("28816");
             c3.setCity("Stuhr");
-            c3.setUrl("https://www.xn--irion-sgewerk-hfb.de/s/img/emotionheader21766021.jpg");
+            c3.setHomepage("https://www.bremer-palettenkontor.de/");
+            c3.setVat("DE811921533");
             c3.setSeller(true);
             companyRepository.save(c3);
 
+/*
+            CompanyPallet companyPallet1 = new CompanyPallet();
+            companyPallet1.setCompany(c3);
+            companyPallet1.setPallet(epalEuropaletteNew);
+            companyPallet1.setDescription("Europaletten nach EPAL Standard");
+            companyPallet1.setQuantity(500L);
+            companyPalletRepository.save(companyPallet1);
+
+
+            CompanyPallet companyPallet2 = new CompanyPallet();
+            companyPallet2.setCompany(c3);
+            companyPallet2.setPallet(gitterboxA);
+            companyPallet2.setDescription("Gitterbox nach EPAL Standard Class A");
+            companyPallet2.setQuantity(100L);
+            companyPalletRepository.save(companyPallet2);
+
+            CompanyPallet companyPallet3 = new CompanyPallet();
+            companyPallet3.setCompany(c3);
+            companyPallet3.setPallet(epal2B);
+            companyPallet3.setDescription("Europaletten 2 nach EPAL Standard Class B");
+            companyPallet3.setQuantity(200L);
+            companyPalletRepository.save(companyPallet3);
+
+            CompanyPallet companyPallet4 = new CompanyPallet();
+            companyPallet4.setCompany(c3);
+            companyPallet4.setPallet(epal3C);
+            companyPallet4.setDescription("Europaletten 3 nach EPAL Standard Class C");
+            companyPallet4.setQuantity(300L);
+            companyPalletRepository.save(companyPallet4);
+
+
+
+*/
             Employee e3 = new Employee();
             e3.setEmail("hdqeing@gmail.com");
             e3.setCompany(c3);
             e3.setPassword(passwordEncoder.encode("123456"));
             e3.setFirstName("Nina");
             e3.setLastName("Monsig");
+            e3.setPreferredLanguage("EN");
             employeeRepository.save(e3);
+
+            Query q1 = new Query();
+            q1.setBuyer(c1);
+            queryRepository.save(q1);
+
+            QueryPallet queryPallet1 = new QueryPallet();
+            queryPallet1.setQuery(q1);
+            queryPallet1.setPallet(epalEuropaletteNew);
+            queryPallet1.setQuantity(100);
+            queryPalletRepository.save(queryPallet1);
+
+            QueryPallet queryPallet2 = new QueryPallet();
+            queryPallet2.setQuery(q1);
+            queryPallet2.setPallet(gitterboxA);
+            queryPallet2.setQuantity(50);
+            queryPalletRepository.save(queryPallet2);
+
+
+            Query q2 = new Query();
+            q2.setBuyer(c1);
+
+            queryRepository.save(q2);
+
+            QuerySeller querySeller1 = new QuerySeller();
+            querySeller1.setQuery(q2);
+            querySeller1.setSeller(c3);
+            querySellerRepository.save(querySeller1);
+
+            QueryPallet queryPallet3 = new QueryPallet();
+            queryPallet3.setQuery(q2);
+            queryPallet3.setPallet(epalEuropaletteNew);
+            queryPallet3.setQuantity(100);
+            queryPalletRepository.save(queryPallet3);
+
+            QueryPallet queryPallet4 = new QueryPallet();
+            queryPallet4.setQuery(q2);
+            queryPallet4.setPallet(gitterboxA);
+            queryPallet4.setQuantity(50);
+            queryPalletRepository.save(queryPallet4);
+
+            Query q3 = new Query();
+            q3.setBuyer(c1);
+
+            queryRepository.save(q3);
+
+            QueryPallet queryPallet5 = new QueryPallet();
+            queryPallet5.setQuery(q3);
+            queryPallet5.setPallet(epalEuropaletteB);
+            queryPallet5.setQuantity(500);
+            queryPalletRepository.save(queryPallet5);
+
+            //Add data for stocks
+
+            Photo photo1 = new Photo("1.jpg");
+            Photo photo2 = new Photo("2.jpg");
+            Photo photo3 = new Photo("3.jpg");
+            Photo photo4 = new Photo("4.jpg");
+            Photo photo5 = new Photo("5.jpg");
+            Photo photo6 = new Photo("6.jpg");
+            Photo photo7 = new Photo("7.jpg");
+            Photo photo8 = new Photo("8.jpg");
+            Photo photo9 = new Photo("9.jpg");
+            Photo photo10 = new Photo("10.jpg");
+            Photo photo11 = new Photo("11.jpg");
+            Photo photo12 = new Photo("12.jpg");
+            Photo photo13 = new Photo("13.jpg");
+
+            Stock stock1 = new Stock();
+            stock1.setCompany(c3);
+            stock1.setPallet(epalEuropaletteNew);
+            stock1.setPrice(10);
+            stock1.setQuantity(5000);
+            photo1.setStock(stock1);
+            stock1.getPhotos().add(photo1);
+
+            photo2.setStock(stock1);
+            stock1.getPhotos().add(photo2);
+
+            photo3.setStock(stock1);
+            stock1.getPhotos().add(photo3);
+
+            photo4.setStock(stock1);
+            stock1.getPhotos().add(photo4);
+
+            photo5.setStock(stock1);
+            stock1.getPhotos().add(photo5);
+
+            stockRepository.save(stock1);
+
+            Stock stock2 = new Stock();
+            stock2.setCompany(c3);
+            stock2.setPrice(5.99);
+            stock2.setQuantity(2000);
+            stock2.setPallet(epal6A);
+
+            photo6.setStock(stock2);
+            stock2.getPhotos().add(photo6);
+
+            photo7.setStock(stock2);
+            stock2.getPhotos().add(photo7);
+
+            stockRepository.save(stock2);
+
+            Stock stock3 = new Stock();
+            stock3.setCompany(c3);
+            stock3.setPrice(7.99);
+            stock3.setPallet(cp1New);
+            stock3.setQuantity(5000);
+
+            stockRepository.save(stock3);
+
+            Stock stock4 = new Stock();
+            stock4.setQuantity(2500);
+            stock4.setCompany(c3);
+            stock4.setPrice(3);
+            stock4.setPallet(cp9C);
+            photo8.setStock(stock4);
+            stock4.getPhotos().add(photo8);
+
+            stockRepository.save(stock4);
+
+            Stock stock5 = new Stock();
+            stock5.setQuantity(6000);
+            stock5.setCompany(c3);
+            stock5.setPrice(4.99);
+            stock5.setPallet(cp2B);
+            photo9.setStock(stock5);
+            stock5.getPhotos().add(photo9);
+
+            stockRepository.save(stock5);
+
+            Stock stock6 = new Stock();
+            stock6.setQuantity(500);
+            stock6.setCompany(c3);
+            stock6.setPrice(4.99);
+            stock6.setPallet(gitterboxC);
+
+            photo10.setStock(stock6);
+            stock6.getPhotos().add(photo10);
+
+            photo11.setStock(stock6);
+            stock6.getPhotos().add(photo11);
+
+            photo12.setStock(stock6);
+            stock6.getPhotos().add(photo12);
+
+            stockRepository.save(stock6);
+
+            Stock stock7 = new Stock();
+            stock7.setQuantity(1000);
+            stock7.setCompany(c3);
+            stock7.setPrice(20);
+            stock7.setPallet(cp6A);
+            photo13.setStock(stock7);
+            stock7.getPhotos().add(photo13);
+
+            stockRepository.save(stock7);
+
+
+
+
+            log.info("Loaded {} queries with various states and negotiations", queryRepository.count());
+            log.info("Loaded {} query pallets with prices and rounds", queryPalletRepository.count());
+
+
+
 
 
         };
