@@ -31,5 +31,5 @@ jobs:
         with:
           action: upload
           app_location: "dist"
-          azure_static_web_apps_api_token: ${{ secret.CUSTOMER_UI_AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          azure_static_web_apps_api_token: ${{ secrets.CUSTOMER_UI_AZURE_STATIC_WEB_APPS_API_TOKEN }}
           skip_app_build: true
