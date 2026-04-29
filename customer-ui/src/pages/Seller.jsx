@@ -13,7 +13,7 @@ export default function Seller() {
 
     const getSellers = async () => {
         try {
-            const response = await fetch(`${apiUrl}/sellers`);
+            const response = await fetch(`${apiUrl}/v1/companies/sellers`);
             
             if (!response.ok) {
                 throw new Error(`Response status: ${response.status}`)

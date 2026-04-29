@@ -15,7 +15,7 @@ services:
 
 
   database:
-    image: postgres
+    image: postgres:17
     environment:
       POSTGRES_PASSWORD: 123456
     hostname: dbserver

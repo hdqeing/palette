@@ -1,10 +1,17 @@
 package com.palette.api.dto;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class UpdateEmployeeRequest {
     private String email;
-    private String verificationCode;
-    private String password;
+    private String username;
+    private String firstName;
+    private String lastName;
+    private String preferredLanguage;
+    private String telephone;
+    private String salutation;
+    private Long companyId;
 }

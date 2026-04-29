@@ -9,4 +9,10 @@ import java.util.List;
 
 public interface QuoteRepository extends JpaRepository<Quote, Long> {
     List<Quote> findByQueryPalletAndSellerAndIsLatestTrue(QueryPallet queryPallet, Company seller);
+    List<Quote> findByQueryPalletQueryIdAndIsLatestTrue(Long queryId);
+    List<Quote> findByQueryPalletQueryIdAndSellerIdAndIsLatestTrue(
+            Long queryId,
+            Long sellerId
+    );
+
 }

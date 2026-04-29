@@ -14,4 +14,7 @@ public class QuerySeller {
     private Query query;
     @ManyToOne
     private Company seller;
+    private double sum;
+    private boolean isAccepted;
+    private boolean isRejected;
 }

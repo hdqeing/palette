@@ -8,5 +8,4 @@ import java.time.ZonedDateTime;
 public class CreateQuoteRequest {
     private Long queryPalletId;
     private Double price;
-    private ZonedDateTime deadline;
 }
