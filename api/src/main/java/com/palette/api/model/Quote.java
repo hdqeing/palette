@@ -11,7 +11,6 @@ public class Quote {
     @Id
     @GeneratedValue
     private Long id;
-    private ZonedDateTime deadline;
 
     @ManyToOne
     private QueryPallet queryPallet;

@@ -49,7 +49,7 @@ public class PalletController {
     ResponseEntity<List<Pallet>> getPalletsWithSort(@PathVariable String sortId) {
         try {
             Long id = Long.parseLong(sortId);
-            List<Pallet> pallets = palletRepository.findBySort_Id(id);
+            List<Pallet> pallets = palletRepository.findByPalletSort_Id(id);
             return ResponseEntity.ok(pallets);
         } catch (NumberFormatException e) {
             return ResponseEntity.badRequest().build();

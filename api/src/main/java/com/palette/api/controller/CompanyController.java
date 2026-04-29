@@ -1,7 +1,12 @@
 package com.palette.api.controller;
 
+import com.palette.api.dto.CreateCompanyRequest;
+import com.palette.api.dto.UpdateCompanyRequest;
 import com.palette.api.model.Company;
+import com.palette.api.model.Stock;
 import com.palette.api.repository.CompanyRepository;
+import com.palette.api.repository.StockRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -9,13 +14,15 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@RequestMapping("/v1/companies")
 public class CompanyController {
 
-    private final CompanyRepository companyRepository;
+    @Autowired
+    private CompanyRepository companyRepository;
 
-    public CompanyController(CompanyRepository companyRepository) {
-        this.companyRepository = companyRepository;
-    }
+    @Autowired
+    private StockRepository stockRepository;
+
 
     @GetMapping
     public ResponseEntity<List<Company>> getAllCompanies() {
@@ -30,6 +37,12 @@ public class CompanyController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/{id}/stocks")
+    public ResponseEntity<List<Stock>> getStocksByCompany(@PathVariable Long id) {
+        List<Stock> stocks = stockRepository.findByCompanyId(id);
+        return ResponseEntity.ok(stocks);
+    }
+
     @GetMapping("/sellers")
     public ResponseEntity<List<Company>> getSellers() {
         List<Company> sellers = companyRepository.findByIsSellerTrue();
@@ -37,19 +50,51 @@ public class CompanyController {
     }
 
     @PostMapping
-    public ResponseEntity<Company> createCompany(@RequestBody Company company) {
+    public ResponseEntity<Company> createCompany(@RequestBody CreateCompanyRequest request) {
+        Company company = new Company();
+        company.setTitle(request.getTitle());
+        company.setStreet(request.getStreet());
+        company.setHouseNumber(request.getHouseNumber());
+        company.setPostalCode(request.getPostalCode());
+        company.setCity(request.getCity());
+        company.setHomepage(request.getHomepage());
+        company.setVat(request.getVat());
+        company.setSeller(request.isSeller());
+        company.setShipping(request.isShipping());
+        company.setGermanyPickUp(request.isGermanyPickUp());
+        company.setEuPickUp(request.isEuPickUp());
+        company.setGermanyDeliver(request.isGermanyDeliver());
+        company.setEuDeliver(request.isEuDeliver());
+
         Company savedCompany = companyRepository.save(company);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedCompany);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Company> updateCompany(@PathVariable Long id, @RequestBody Company company) {
-        if (!companyRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        company.setId(id);
-        Company updatedCompany = companyRepository.save(company);
-        return ResponseEntity.ok(updatedCompany);
+    public ResponseEntity<Company> updateCompany(
+            @PathVariable Long id,
+            @RequestBody UpdateCompanyRequest request
+    ) {
+        return companyRepository.findById(id)
+                .map(existingCompany -> {
+                    existingCompany.setTitle(request.getTitle());
+                    existingCompany.setStreet(request.getStreet());
+                    existingCompany.setHouseNumber(request.getHouseNumber());
+                    existingCompany.setPostalCode(request.getPostalCode());
+                    existingCompany.setCity(request.getCity());
+                    existingCompany.setHomepage(request.getHomepage());
+                    existingCompany.setVat(request.getVat());
+                    existingCompany.setSeller(request.isSeller());
+                    existingCompany.setShipping(request.isShipping());
+                    existingCompany.setGermanyPickUp(request.isGermanyPickUp());
+                    existingCompany.setEuPickUp(request.isEuPickUp());
+                    existingCompany.setGermanyDeliver(request.isGermanyDeliver());
+                    existingCompany.setEuDeliver(request.isEuDeliver());
+
+                    Company updatedCompany = companyRepository.save(existingCompany);
+                    return ResponseEntity.ok(updatedCompany);
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")

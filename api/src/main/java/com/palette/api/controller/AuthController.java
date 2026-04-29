@@ -50,19 +50,33 @@ public class AuthController {
     @Autowired
     JwtEncoder jwtEncoder;
 
-    @PostMapping("/email")
-    public ResponseEntity<String> newEmployee(@RequestBody EmailVerificationRequest request){
-        String email = request.getEmail();
-        if (employeeRepository.existsByEmail(email)){
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("This Email has already been registered!");
-        } else {
-            String verificationCode = String.format("%06d", (new SecureRandom()).nextInt(1_000_000));
-            ZonedDateTime expireAt = ZonedDateTime.now(ZoneId.systemDefault()).plusMinutes(30);
-            Employee newEmployee = new Employee(email, verificationCode, expireAt);
-            employeeRepository.save(newEmployee);
-            mailService.sendVerificationCode(newEmployee, verificationCode);
-            return ResponseEntity.ok().body("This Email is effective.");
+    @PostMapping("/verify")
+    public ResponseEntity<String> verifyEmail(@RequestBody EmailVerificationRequest request) {
+
+        if (request.getEmail() == null || request.getEmail().isBlank()) {
+            return ResponseEntity.badRequest().body("Email is required");
         }
+
+        if (request.getVerificationCode() == null || request.getVerificationCode().isBlank()) {
+            return ResponseEntity.badRequest().body("Verification code is required");
+        }
+
+        Employee employee = employeeRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new EmployeeNotFoundException(request.getEmail()));
+
+        if (employee.getVerificationCode() == null || employee.getExpireAt() == null) {
+            return ResponseEntity.badRequest().body("No verification code available");
+        }
+
+        if (employee.getExpireAt().isBefore(ZonedDateTime.now())) {
+            return ResponseEntity.badRequest().body("Verification code expired");
+        }
+
+        if (!employee.getVerificationCode().equals(request.getVerificationCode())) {
+            return ResponseEntity.badRequest().body("Verification code is incorrect");
+        }
+
+        return ResponseEntity.ok("Verification successful");
     }
 
     @PostMapping("/register")
@@ -108,6 +122,41 @@ public class AuthController {
         }
 
     }
+
+    @PostMapping("/login/admin")
+    public ResponseEntity<String> adminLogin(@RequestBody LoginRequest request, HttpServletResponse response){
+        String email = request.getEmail();
+        String password = request.getPassword();
+        Employee employee = employeeRepository.findByEmail(email).orElseThrow(() -> new EmployeeNotFoundException(email));
+
+        if (!employee.isAdmin()){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Sorry, you are not an admin user!");
+        }
+
+        if (passwordEncoder.matches(password, employee.getPassword())){
+            Instant now = Instant.now();
+            long expiry = 36000L;
+
+            JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();
+            JwtClaimsSet claims = JwtClaimsSet.builder().issuer("self").issuedAt(now).expiresAt(now.plusSeconds(expiry)).subject(employee.getEmail()).build();
+            String token = jwtEncoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();
+
+            Cookie jwtCookie = new Cookie("jwt-token", token);
+            jwtCookie.setMaxAge((int) expiry); // Cookie expiry matches JWT expiry
+            jwtCookie.setPath("/"); // Available for entire application
+            jwtCookie.setHttpOnly(true); // Prevents XSS attacks
+            // jwtCookie.setSecure(true); // Only send over HTTPS (remove for local development)
+            // jwtCookie.setSameSite("Strict"); // Uncomment if using Spring Boot 2.6+ or add manually
+
+            // Add cookie to response
+            response.addCookie(jwtCookie);
+            return ResponseEntity.ok(token);
+        } else {
+            return ResponseEntity.badRequest().body("Sorry, Password is wrong");
+        }
+
+    }
+
 
     @PostMapping("/logout")
     public ResponseEntity<String> logout(HttpServletResponse response){

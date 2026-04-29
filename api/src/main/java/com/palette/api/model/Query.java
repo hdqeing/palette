@@ -12,7 +12,7 @@ public class Query {
     @GeneratedValue
     private Long id;
     private ZonedDateTime deadline;
-
+    private boolean isDeliveryRequest;
     @ManyToOne
     private Company buyer;
     private Boolean isClosed;

@@ -1,10 +1,7 @@
 package com.palette.api.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
@@ -15,6 +12,7 @@ public class Message {
     private Long id;
 
     @ManyToOne
+    @JoinColumn(name = "receiver_id")
     @JsonBackReference
     private Employee receiver;
 

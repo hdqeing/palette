@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface PalletRepository extends JpaRepository<Pallet, Long> {
-    List<Pallet> findBySort_Id(Long sortId);
+    List<Pallet> findByPalletSort_Id(Long palletSortId);
 }

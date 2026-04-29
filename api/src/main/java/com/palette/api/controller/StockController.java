@@ -84,14 +84,15 @@ public class StockController {
     }
 
     @GetMapping()
-    public ResponseEntity<List<Stock>> getMyStocks(@CookieValue("jwt-token") String token){
-        Jwt jwt = jwtDecoder.decode(token);
-        String email = jwt.getSubject();
-
-        Employee employee = employeeRepository.findByEmail(email).orElseThrow(() -> new EmployeeNotFoundException(email));
-        Company seller = employee.getCompany();
-
-        List<Stock> myStocks = stockRepository.findByCompany(seller);
-        return ResponseEntity.ok(myStocks);
+    public ResponseEntity<List<Stock>> getAllStocks(){
+        List<Stock> stocks = stockRepository.findAll();
+        return ResponseEntity.ok(stocks);
     }
+
+    @GetMapping("/pallet/{palletId}")
+    public ResponseEntity<List<Stock>> getStocksByPallet(@PathVariable Long palletId){
+        List<Stock> stocks = stockRepository.findByPalletId(palletId);
+        return ResponseEntity.ok(stocks);
+    }
+
 }

@@ -24,13 +24,15 @@ public class Employee {
     @JsonIgnore
     private String verificationCode;
     private String telephone;
-    private String formOfAddress;
+    private String salutation;
     @JsonIgnore
     private ZonedDateTime expireAt;
     @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<Message> messages;
     private boolean emailNotificationEnabled;
+    private String username;
+    private boolean isAdmin;
 
     @ManyToOne
     private Company company;
