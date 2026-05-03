@@ -7,15 +7,20 @@ import com.palette.api.service.QuoteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/v1")
 @RequiredArgsConstructor
 public class QuoteController{
     private final QuoteService quoteService;
 
-    @PostMapping("/quotes")
-    public Quote createQuote(@CookieValue("jwt-token") String token, @RequestBody CreateQuoteRequest request){
-        return quoteService.createQuote(token, request);
+    @PostMapping("/query/{queryId}/quotes")
+    public List<Quote> createQuote(
+            @CookieValue("jwt-token") String token,
+            @PathVariable Long queryId,
+            @RequestBody CreateQuoteRequest request
+    ) {
+        return quoteService.createQuote(token, queryId, request);
     }
-
 }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Accordion, Breadcrumb, Button, Col, Form, InputGroup, Row } from "react-bootstrap";
-import type { User } from "./types/user";
-import type { Company } from "./types/company";
+import type { User } from "../types/user";
+import type { Company } from "../types/company";
 import VerifiedIcon from '@mui/icons-material/Verified';
 import AddIcon from '@mui/icons-material/Add'
 

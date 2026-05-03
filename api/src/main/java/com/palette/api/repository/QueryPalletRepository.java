@@ -5,6 +5,7 @@ import com.palette.api.model.QueryPallet;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface QueryPalletRepository extends JpaRepository<QueryPallet, Long> {
     List<QueryPallet> findByQuery(Query query);
@@ -12,7 +13,5 @@ public interface QueryPalletRepository extends JpaRepository<QueryPallet, Long> 
     // Find all QueryPallets for a specific Query
     List<QueryPallet> findByQueryId(Long queryId);
     // Find all QueryPallets for a specific Query and Pallet
-    List<QueryPallet> findByQueryIdAndPalletId(Long queryId, Long palletId);
-
-
+    Optional<QueryPallet> findByQueryIdAndPalletId(Long queryId, Long palletId);
 }

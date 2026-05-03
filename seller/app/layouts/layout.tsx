@@ -1,11 +1,9 @@
-import { Outlet, useOutletContext } from "react-router";
-import { Col, Container, Nav, Row, Navbar, Button, NavDropdown, ToastContainer,Modal, Tab, Form, FloatingLabel, Alert, Toast, Image, Dropdown, DropdownToggle, DropdownItem, DropdownMenu } from "react-bootstrap";
+import { Outlet } from "react-router";
+import { Col, Container, Nav, Row, Navbar, Button, ToastContainer,Modal, Tab, Form, FloatingLabel, Alert, Toast, Image, Dropdown, DropdownToggle, DropdownItem, DropdownMenu } from "react-bootstrap";
 import { ReactCountryFlag } from "react-country-flag";
 import { useTranslation } from "react-i18next";
-import { AccountBoxOutlined, AnalyticsOutlined, DashboardOutlined, DescriptionOutlined, MailOutline, NotificationsOutlined, RequestQuoteOutlined } from "@mui/icons-material";
+import { Logout } from "@mui/icons-material";
 import { useState } from "react";
-import { useContext } from "react";
-import { AuthContext } from "./contexts/authContext";
 import { useEffect } from 'react';
 import  PalletIcon  from "@mui/icons-material/Pallet";
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -17,25 +15,26 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import PersonIcon from '@mui/icons-material/Person';
 
 export default function SellerLayout({}) {
-  const { t, i18n } = useTranslation();
-  const [authenticated, setAuthenticated] = useState(false);
 
+  const API_URL = import.meta.env.VITE_API_URL;
+
+  const { t, i18n } = useTranslation();
+
+  const [authenticated, setAuthenticated] = useState(false);
   const [showSignupModal, setShowSignupModal] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-
-
   const [showEmailAlert, setShowEmailAlert] = useState(false);
   const [showTokenAlert, setShowTokenAlert] = useState(false);
   const [showPasswordAlert, setShowPasswordAlert] = useState(false);
   const [firstname, setFirstname] = useState('')
   const [preferredLanguage, setPreferredLanguage] = useState('de');
-  const availableLanguages = ["DE", "RU", "GB"]
+  const availableLanguages = ["de", "ru", "en"]
+  const [defaultLanguage, setDefaultLanguage] = useState("en")
 
   const [messageEmailAlert, setMessageEmailAlert] = useState('');
   const [currentKey, setCurrentKey] = useState('mailAngeben');
 
-  const API_URL = import.meta.env.VITE_API_URL;
 
   // Separate state for signup and login forms
   const [email, setEmail] = useState('');
@@ -158,25 +157,45 @@ export default function SellerLayout({}) {
     }
   }
 
-    const getLanguageDisplay = (language:String) => {
+  const handleLogout = async () => {
+
+      try {
+          const response = await fetch(`${API_URL}/v1/auth/logout`, {
+              method: "POST",
+              headers: {
+                  "Accept": "*/*",
+                  "Content-Type": "application/json"
+              },
+              credentials: "include",
+          });
+
+          if (response.status === 200){
+              setShowLogoutModal(false);
+              setAuthenticated(false);
+          } else {
+              console.log(response.json)
+          }
+
+      } catch (error) {
+          console.log(error)
+      }
+      
+  };
+
+
+  const getLanguageDisplay = (language:String) => {
     switch (language) {
-      case 'gb':
+      case 'en':
         return (
-          <>
-            <ReactCountryFlag countryCode="GB" svg /> EN
-          </>
+          <><ReactCountryFlag countryCode="GB" svg /> EN</>
         );
       case 'ru':
         return (
-          <>
-            <ReactCountryFlag countryCode="RU" svg /> RU
-          </>
+          <><ReactCountryFlag countryCode="RU" svg /> RU</>
         );
       default:
         return (
-          <>
-            <ReactCountryFlag countryCode="DE" svg /> DE
-          </>
+          <><ReactCountryFlag countryCode="DE" svg /> DE</>
         );
     }
   };
@@ -188,6 +207,8 @@ export default function SellerLayout({}) {
 
     if (response.ok) {
       setAuthenticated(true);
+      const data = await response.json();
+      setFirstname(data.firstName);
     }
 
   }
@@ -201,42 +222,41 @@ export default function SellerLayout({}) {
     <Container fluid className="p-0">
       <div className="min-vh-100 d-flex" >
 
-        <Col xs={2} className="rounded shadow p-4 d-flex flex-column justify-content-between">
-
+        <Col xxl="2" className="rounded shadow p-4 d-flex flex-column justify-content-between bg-warning-subtle">
           <Row >
-            <div className="text-center shadow-sm p-3">
-            <h3>Palletly</h3>
-
+            <div className="shadow p-3 mb-5 bg-body-tertiary rounded d-flex justify-content-center align-items-center">
+              <Image src="/iconPalette.svg" style={{ height: "64px", width: "auto" }}></Image>
+              <h3 className="my-0 ms-2">Palette365</h3>
             </div>
-          <Nav className="flex-column">
-            <Nav.Item className="d-flex align-items-center">
-              <DashboardIcon></DashboardIcon>
-              <Nav.Link href="/">{t('dashboard')}</Nav.Link>
-            </Nav.Item>
-            <Nav.Item className="d-flex align-items-center">
-              <PalletIcon></PalletIcon>
-              <Nav.Link href="/product">{t('product')}</Nav.Link>
-            </Nav.Item>
-            <Nav.Item className="d-flex align-items-center">
-              <RequestQuoteIcon></RequestQuoteIcon>
-              <Nav.Link href="/query">{t('inquiry')}</Nav.Link>
-            </Nav.Item>
-            <Nav.Item className="d-flex align-items-center">
-              <ReceiptLongIcon></ReceiptLongIcon>
-              <Nav.Link href="/order">{t('order')}</Nav.Link>
-            </Nav.Item>
-            <Nav.Item className="d-flex align-items-center">
-              <AnalyticsIcon></AnalyticsIcon>
-              <Nav.Link href="/analysis">{t('statistics')}</Nav.Link>
-            </Nav.Item>   
-            <Nav.Item className="d-flex align-items-center">
-              <PersonIcon></PersonIcon>
-              <Nav.Link href="/profile">{t('profile')}</Nav.Link>
-            </Nav.Item>   
 
-          </Nav>
-
+            <Nav className="flex-column">
+              <Nav.Item className="d-flex align-items-center">
+                <DashboardIcon></DashboardIcon>
+                <Nav.Link href="/">{t('dashboard')}</Nav.Link>
+              </Nav.Item>
+              <Nav.Item className="d-flex align-items-center">
+                <PalletIcon></PalletIcon>
+                <Nav.Link href="/product">{t('inventory')}</Nav.Link>
+              </Nav.Item>
+              <Nav.Item className="d-flex align-items-center">
+                <RequestQuoteIcon></RequestQuoteIcon>
+                <Nav.Link href="/query">{t('request_for_quote')}</Nav.Link>
+              </Nav.Item>
+              <Nav.Item className="d-flex align-items-center">
+                <ReceiptLongIcon></ReceiptLongIcon>
+                <Nav.Link href="/order">{t('order')}</Nav.Link>
+              </Nav.Item>
+              <Nav.Item className="d-flex align-items-center">
+                <AnalyticsIcon></AnalyticsIcon>
+                <Nav.Link href="/analysis">{t('statistics')}</Nav.Link>
+              </Nav.Item>   
+              <Nav.Item className="d-flex align-items-center">
+                <PersonIcon></PersonIcon>
+                <Nav.Link href="/profile">{t('profile')}</Nav.Link>
+              </Nav.Item>   
+            </Nav>
           </Row>
+
           <Row>
             <Col>
             <span>Datenschutz</span>
@@ -245,32 +265,39 @@ export default function SellerLayout({}) {
             <span>Impressum</span>
             </Col>
           </Row>
-
-
         </Col>
 
-        <Col className="p-0">
+        <Col xxl="10" className="p-0">
 
           <div>
-            <Navbar className="pe-3">
+            <Navbar className="p-4">
                 <Nav className="ms-auto gap-3 align-items-center">
+
+                  {
+                    authenticated? (
+                      <p className="m-0">Hi, <b>{firstname}</b></p>
+                    ) : (
+                      <></>
+                    )
+                  }
+
 
                   <Dropdown>
                     <DropdownToggle variant="outline-success">
-                      {getLanguageDisplay(preferredLanguage)}
+                      {getLanguageDisplay(defaultLanguage)}
                     </DropdownToggle>
                     <DropdownMenu>
                     {
-                      availableLanguages.map(availableLanguage => (
+                      availableLanguages.filter(language => language !== defaultLanguage).map(availableLanguage => (
                         <DropdownItem
                           onClick={
                             () => {
-                              i18n.changeLanguage(availableLanguage.toLowerCase());
-                              setPreferredLanguage(availableLanguage.toLowerCase());
+                              i18n.changeLanguage(availableLanguage);
+                              setDefaultLanguage(availableLanguage);
                             }
                           }
                         >
-                          <ReactCountryFlag countryCode={availableLanguage} svg /> {availableLanguage === "GB" ? "EN" : availableLanguage}
+                          <ReactCountryFlag countryCode={availableLanguage === "en"? "GB" : availableLanguage} svg /> {availableLanguage.toLocaleUpperCase() === "GB" ? "EN" : availableLanguage.toLocaleUpperCase()}
                         </DropdownItem>
                       ))
                     }
@@ -285,25 +312,18 @@ export default function SellerLayout({}) {
                     <SettingsIcon />
                   </Button>
 
-                  <Dropdown align="end">
-                    <DropdownToggle variant="outline-success">
-                      <PersonIcon />
-                    </DropdownToggle>
-                    <DropdownMenu>
-                      {authenticated ? (
-                        <>
-                          <Dropdown.Item href="/profile">Profile</Dropdown.Item>
-                          <Dropdown.Item onClick={() => setShowLogoutModal(true)}>Sign out</Dropdown.Item>                        
-                        </>
-                      ) : (
-                        <>
-                          <Dropdown.Item onClick={() => setShowLoginModal(true)}>Login</Dropdown.Item>
-                          <Dropdown.Item onClick={() => setShowSignupModal(true)}>Sign up</Dropdown.Item>                        
-                        </>
-                      )}
-                    </DropdownMenu>
-                  </Dropdown>
-
+                  {
+                    authenticated? (
+                      <>
+                        <Button variant="danger" onClick={() => setShowLogoutModal(true)}><Logout></Logout>{t("sign_out")}</Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button variant="outline-success" onClick={() => setShowSignupModal(true)}>{t("sign_up")}</Button>
+                        <Button variant="success" onClick={() => setShowLoginModal(true)}>{t("sign_in")}</Button>
+                      </>
+                    )
+                  }
 
                 </Nav>
             </Navbar>
@@ -499,11 +519,11 @@ export default function SellerLayout({}) {
       </Modal>
 
       <Modal show={showLogoutModal} centered>
-
-        <Modal.Title>Are you sure to sign out?</Modal.Title>
-        <Modal.Footer>
-          <Button>Yes</Button>
-          <Button>No</Button>
+        <Modal.Header className="justify-content-center"><Modal.Title>{t("msg_sign_out")}</Modal.Title></Modal.Header>
+        
+        <Modal.Footer className="w-100">
+          <Col><Button variant="outline-success" className="w-100" onClick={() => setShowLogoutModal(false)}>{t("cancel")}</Button></Col>
+          <Col><Button variant="danger" className="w-100" onClick={handleLogout}>{t("sign_out")}</Button></Col>
         </Modal.Footer>
       </Modal>
 
@@ -520,8 +540,6 @@ export default function SellerLayout({}) {
           You have registered successfully, click login button to login.
         </Toast>
       </ToastContainer>
-
-
     </Container>
   );
 }
