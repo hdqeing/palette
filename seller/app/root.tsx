@@ -8,8 +8,8 @@ import {
 } from "react-router";
 
 import type { Route } from "./+types/root";
-import "./app.css";
-import './i18n';
+// import "./app.css";
+import './i18n/config';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import React from "react";
 

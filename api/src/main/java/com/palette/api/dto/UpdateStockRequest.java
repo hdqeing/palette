@@ -9,8 +9,11 @@ import java.util.List;
 
 @Getter
 @Setter
-public class CreateStockRequest {
+public class UpdateStockRequest {
     private Long paletteId;
     private int quantity;
     private double price;
+    private List<Long> keepPhotoIds;
+
+    // getters and setters
 }

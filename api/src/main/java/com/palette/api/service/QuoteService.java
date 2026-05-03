@@ -2,10 +2,7 @@ package com.palette.api.service;
 
 import com.palette.api.dto.CreateQuoteRequest;
 import com.palette.api.model.*;
-import com.palette.api.repository.EmployeeRepository;
-import com.palette.api.repository.QueryPalletRepository;
-import com.palette.api.repository.QuerySellerRepository;
-import com.palette.api.repository.QuoteRepository;
+import com.palette.api.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -13,6 +10,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -34,20 +32,20 @@ public class QuoteService {
     QuoteRepository quoteRepository;
 
     @Autowired
+    QueryRepository queryRepository;
+
+    @Autowired
     MailService mailService;
 
     @Transactional
-    public Quote createQuote(String token, CreateQuoteRequest request) {
+    public List<Quote> createQuote(String token, Long queryId, CreateQuoteRequest request) {
         Jwt jwt = jwtDecoder.decode(token);
         String email = jwt.getSubject();
 
         Employee employee = employeeRepository.findByEmail(email).orElseThrow();
         Company seller = employee.getCompany();
 
-        QueryPallet queryPallet = queryPalletRepository.findById(request.getQueryPalletId())
-                .orElseThrow();
-
-        Query query = queryPallet.getQuery();
+        Query query = queryRepository.findById(queryId).orElseThrow();
 
         boolean sellerAllowed = querySellerRepository.existsByQueryIdAndSellerId(
                 query.getId(),
@@ -58,22 +56,30 @@ public class QuoteService {
             throw new RuntimeException("Seller is not allowed to quote for this query");
         }
 
-        List<Quote> previousLatestQuotes =
-                quoteRepository.findByQueryPalletAndSellerAndIsLatestTrue(queryPallet, seller);
+        List<Quote> savedQuotes = new ArrayList<>();
 
-        for (Quote previousQuote : previousLatestQuotes) {
-            previousQuote.setIsLatest(false);
+        for (CreateQuoteRequest.PalletQuote palletQuote : request.getQuotes()) {
+            QueryPallet queryPallet = queryPalletRepository
+                    .findByQueryIdAndPalletId(queryId, palletQuote.getPalletId())
+                    .orElseThrow();
+
+            List<Quote> previousLatestQuotes =
+                    quoteRepository.findByQueryPalletAndSellerAndIsLatestTrue(queryPallet, seller);
+
+            for (Quote previousQuote : previousLatestQuotes) {
+                previousQuote.setIsLatest(false);
+            }
+
+            quoteRepository.saveAll(previousLatestQuotes);
+
+            Quote quote = new Quote();
+            quote.setIsLatest(true);
+            quote.setSeller(seller);
+            quote.setQueryPallet(queryPallet);
+            quote.setPrice(palletQuote.getPrice());
+
+            savedQuotes.add(quoteRepository.save(quote));
         }
-
-        quoteRepository.saveAll(previousLatestQuotes);
-
-        Quote quote = new Quote();
-        quote.setIsLatest(true);
-        quote.setSeller(seller);
-        quote.setQueryPallet(queryPallet);
-        quote.setPrice(request.getPrice());
-
-        Quote savedQuote = quoteRepository.save(quote);
 
         updateQuerySellerSum(query.getId(), seller.getId());
 
@@ -86,9 +92,8 @@ public class QuoteService {
             }
         }
 
-        return savedQuote;
+        return savedQuotes;
     }
-
     @Transactional
     public QuerySeller rejectQuote(String token, Long queryId, Long sellerId) {
         Employee employee = getEmployeeFromToken(token);

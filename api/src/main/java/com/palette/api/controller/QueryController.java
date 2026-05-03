@@ -1,15 +1,9 @@
 package com.palette.api.controller;
 
-import com.palette.api.dto.BuyerQueryPalletResponse;
-import com.palette.api.dto.BuyerQueryResponse;
-import com.palette.api.dto.CreateQueryRequest;
-import com.palette.api.dto.QueryDetailsResponse;
+import com.palette.api.dto.*;
 import com.palette.api.exception.EmployeeNotFoundException;
 import com.palette.api.model.*;
-import com.palette.api.repository.EmployeeRepository;
-import com.palette.api.repository.QueryPalletRepository;
-import com.palette.api.repository.QueryRepository;
-import com.palette.api.repository.QuerySellerRepository;
+import com.palette.api.repository.*;
 import com.palette.api.service.QueryService;
 import com.palette.api.service.QuoteService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +40,10 @@ public class QueryController {
 
     @Autowired
     private QueryPalletRepository queryPalletRepository;
+
+    @Autowired
+    private QuoteRepository quoteRepository;
+
 
     @PostMapping("/queries")
     Query newQuery(@CookieValue("jwt-token") String token, @RequestBody CreateQueryRequest createQueryRequest) {
@@ -118,17 +116,68 @@ public class QueryController {
         }).toList();
     }
 
+
     @GetMapping("/seller/queries")
-    List<QuerySeller> getQueriesForSeller(@CookieValue("jwt-token") String token) {
-        Jwt jwt = jwtDecoder.decode(token);
-        String email = jwt.getSubject();
+    public ResponseEntity<?> getQueriesForSeller(@CookieValue(value = "jwt-token", required = false) String token) {
+        try {
+            if (token == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing token");
+            }
 
-        Employee employee = employeeRepository.findByEmail(email)
-                .orElseThrow(() -> new EmployeeNotFoundException(email));
-        Company seller = employee.getCompany();
+            Jwt jwt = jwtDecoder.decode(token);
+            String email = jwt.getSubject();
 
-        return querySellerRepository.findBySellerId(seller.getId());
+            Employee employee = employeeRepository.findByEmail(email)
+                    .orElseThrow(() -> new EmployeeNotFoundException(email));
+            Company seller = employee.getCompany();
+
+            List<QuerySeller> querySellerEntries = querySellerRepository.findBySellerId(seller.getId());
+
+            List<SellerQueryResponse> response = querySellerEntries.stream().map(querySeller -> {
+                Query query = querySeller.getQuery();
+
+                List<SellerQueryPalletResponse> pallets = queryPalletRepository.findByQueryId(query.getId())
+                        .stream()
+                        .map(queryPallet -> {
+                            SellerQueryPalletResponse palletResponse = new SellerQueryPalletResponse();
+                            palletResponse.setQueryPalletId(queryPallet.getId());
+                            palletResponse.setPallet(queryPallet.getPallet());
+                            palletResponse.setQuantity(queryPallet.getQuantity());
+
+                            // attach the seller's quote for this pallet if it exists
+                            quoteRepository.findByQueryPalletIdAndSellerId(queryPallet.getId(), seller.getId())
+                                    .ifPresent(quote -> palletResponse.setQuotedPrice(quote.getPrice()));
+
+                            return palletResponse;
+                        })
+                        .toList();
+
+                SellerQueryResponse sellerQueryResponse = new SellerQueryResponse();
+                sellerQueryResponse.setQueryId(query.getId());
+                sellerQueryResponse.setDeadline(query.getDeadline());
+                sellerQueryResponse.setIsClosed(query.getIsClosed());
+                sellerQueryResponse.setDeliveryRequest(query.isDeliveryRequest());
+                sellerQueryResponse.setBuyer(query.getBuyer());
+                sellerQueryResponse.setPallets(pallets);
+                sellerQueryResponse.setAccepted(querySeller.isAccepted());
+                sellerQueryResponse.setRejected(querySeller.isRejected());
+                sellerQueryResponse.setSum(querySeller.getSum());
+
+                return sellerQueryResponse;
+            }).toList();
+
+            return ResponseEntity.ok(response);
+
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An error occurred while retrieving queries");
+        }
     }
+
+
+
 
     @PutMapping("/queries/{queryId}/seller/{sellerId}/accept")
     public QuerySeller acceptQuote(
