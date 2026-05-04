@@ -23,6 +23,7 @@ jobs:
           cache: maven
 
       - name: Build Spring Boot image
+        working-directory: ./api
         run: |
           mvn -f pom.xml spring-boot:build-image \
             -DskipTests \
