@@ -58,9 +58,3 @@ jobs:
             --resource-group rg-palette365-dev \
             --container-image-name docker.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
-      - name: Set port
-        run: |
-          az webapp config appsettings set \
-            --name api-palette365 \
-            --resource-group rg-palette365-dev \
-            --settings WEBSITES_PORT=8081
