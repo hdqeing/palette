@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.*;
@@ -179,26 +180,25 @@ public class AuthController {
         return verificationCode.equals(employee.getVerificationCode());
     }
 
-
     @GetMapping("/profile")
-    public ResponseEntity<?> getProfile(@CookieValue("jwt-token") String token) {
-        try {
-            // Decode and validate JWT token
-            Jwt jwt = jwtDecoder.decode(token);
-            String email = jwt.getSubject();
+    public ResponseEntity<?> getProfile(
+            @AuthenticationPrincipal Jwt jwt) { // Spring injects the validated Entra JWT
 
-            // Find employee by email
-            Employee employee = employeeRepository.findByEmail(email).orElseThrow(() -> new EmployeeNotFoundException(email));
-            return ResponseEntity.ok(employee);
+        // Option A: look up by Entra OID (most reliable)
+        String oid = jwt.getClaimAsString("oid");
+        Employee employee = employeeRepository.findByEntraOid(oid)
+                .orElseGet(() -> {
+                    // Auto-provision: first time this Entra user hits your API,
+                    // link them to an existing Employee by email, or create one
+                    String email = jwt.getClaimAsString("preferred_username"); // or "email"
+                    return employeeRepository.findByEmail(email)
+                            .map(emp -> {
+                                emp.setEntraOid(oid); // Link on first login
+                                return employeeRepository.save(emp);
+                            })
+                            .orElseThrow(() -> new EmployeeNotFoundException(email));
+                });
 
-
-        } catch (JwtException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Invalid or expired token");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("An error occurred while retrieving profile");
-        }
+        return ResponseEntity.ok(new EmployeeProfileResponse(employee));
     }
-
 }

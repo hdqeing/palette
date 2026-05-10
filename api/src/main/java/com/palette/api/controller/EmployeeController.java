@@ -10,6 +10,7 @@ import com.palette.api.service.MailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -39,32 +40,10 @@ public class EmployeeController {
     private JwtDecoder jwtDecoder;
 
     @GetMapping
-    ResponseEntity<List<Employee>> all(@CookieValue("jwt-token") String token){
-        try {
-            // Decode and validate JWT token
-            Jwt jwt = jwtDecoder.decode(token);
-            String email = jwt.getSubject();
-
-            // Find employee by email
-            Employee employee = employeeRepository.findByEmail(email).orElseThrow(() -> new EmployeeNotFoundException(email));
-            if (employee.isAdmin()){
-                return ResponseEntity.ok(employeeRepository.findAll());
-            } else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(Collections.emptyList());
-
-            }
-
-
-        } catch (JwtException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Collections.emptyList());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Collections.emptyList());
-        }
-
-
+    ResponseEntity<List<Employee>> all(@AuthenticationPrincipal Jwt jwt) {
+        // No DB lookup, no manual JWT decoding, no cookie reading
+        // Spring Security already validated the token and extracted authorities
+        return ResponseEntity.ok(employeeRepository.findAll());
     }
 
     @PostMapping

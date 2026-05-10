@@ -1,70 +1,58 @@
 import { useEffect, useState, useCallback } from "react";
 import {
     Col, Container, Row, Button, Form,
-    Badge, Spinner, Toast, ToastContainer, Modal,
-    FloatingLabel, Table, Image
+    FloatingLabel, Spinner, Toast, ToastContainer,
+    Modal, Table, Badge
 } from "react-bootstrap";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import AddIcon from "@mui/icons-material/Add";
 import { AuthenticatedTemplate, UnauthenticatedTemplate, useMsal } from "@azure/msal-react";
 import { loginRequest } from "~/authConfig";
-import type { PalletSort } from "~/types";
+import type { Company } from "~/types";
 import type { Route } from "./+types/home";
 
 export function meta({}: Route.MetaArgs) {
     return [
-        { title: "Pallet Management – Palette365 Admin" },
-        { name: "description", content: "Manage pallets" },
+        { title: "Inventory Management – Palette365 Admin" },
+        { name: "description", content: "Manage stock inventories" },
     ];
 }
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+type PalletSort = {
+    id: number;
+    name: string;
+};
+
 type Pallet = {
     id: number;
     name: string;
+    quality: string;
     palletSort: PalletSort;
-    boards: number;
-    nails: number;
-    blocks: number;
-    length: number;
-    width: number;
-    height: number;
-    safeWorkingLoad: number;
-    weight: number;
-    quality: string;
-    url: string;
 };
 
-type PalletForm = {
-    name: string;
-    palletSortId: number;
-    boards: number;
-    nails: number;
-    blocks: number;
-    length: number;
-    width: number;
-    height: number;
-    safeWorkingLoad: number;
-    weight: number;
-    quality: string;
-    url: string;
+type Stock = {
+    id: number;
+    quantity: number;
+    price: number;
+    company: Company;
+    pallet: Pallet;
 };
 
-const EMPTY_FORM: PalletForm = {
-    name: "",
-    palletSortId: 0,
-    boards: 0,
-    nails: 0,
-    blocks: 0,
-    length: 0,
-    width: 0,
-    height: 0,
-    safeWorkingLoad: 0,
-    weight: 0,
-    quality: "NEW",
-    url: "",
+type StockForm = {
+    companyId: number;
+    palletId: number;
+    quantity: number;
+    price: number;
+};
+
+const EMPTY_FORM: StockForm = {
+    companyId: 0,
+    palletId: 0,
+    quantity: 0,
+    price: 0,
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -81,15 +69,18 @@ const getBadgeProps = (quality: string): { bg: string; text?: string } => {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function PalletPage() {
+export default function InventoryPage() {
     const apiUrl = import.meta.env.VITE_API_URL;
     const { instance, accounts } = useMsal();
 
     // Data state
+    const [stocks, setStocks] = useState<Stock[]>([]);
+    const [companies, setCompanies] = useState<Company[]>([]);
     const [pallets, setPallets] = useState<Pallet[]>([]);
-    const [palletSorts, setPalletSorts] = useState<PalletSort[]>([]);
-    const [selectedSortId, setSelectedSortId] = useState<number>(0);
-    const [selectedQuality, setSelectedQuality] = useState<string>("");
+
+    // Filter state
+    const [selectedCompanyId, setSelectedCompanyId] = useState<number>(0);
+    const [selectedPalletId, setSelectedPalletId] = useState<number>(0);
 
     // UI state
     const [loading, setLoading] = useState(false);
@@ -102,8 +93,8 @@ export default function PalletPage() {
     const [showToastDeleteFail, setShowToastDeleteFail] = useState(false);
 
     // Form state
-    const [form, setForm] = useState<PalletForm>(EMPTY_FORM);
-    const [selectedPallet, setSelectedPallet] = useState<Pallet | null>(null);
+    const [form, setForm] = useState<StockForm>(EMPTY_FORM);
+    const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
 
     // ─── Auth fetch ───────────────────────────────────────────────────────────
 
@@ -128,52 +119,59 @@ export default function PalletPage() {
 
     // ─── Data fetching ────────────────────────────────────────────────────────
 
-    const fetchPallets = useCallback(async () => {
+    const fetchStocks = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await authFetch(`${apiUrl}/v1/admin/pallet`);
-            if (response.ok) setPallets(await response.json());
+            const response = await authFetch(`${apiUrl}/v1/admin/inventory`);
+            if (response.ok) setStocks(await response.json());
         } catch (error) {
-            console.error("Failed to load pallets", error);
+            console.error("Failed to load stocks:", error);
         } finally {
             setLoading(false);
         }
     }, [authFetch, apiUrl]);
 
-    const fetchPalletSorts = useCallback(async () => {
+    const fetchCompanies = useCallback(async () => {
         try {
-            const response = await authFetch(`${apiUrl}/v1/pallets/sorts`);
-            if (response.ok) setPalletSorts(await response.json());
+            const response = await authFetch(`${apiUrl}/v1/admin/companies`);
+            if (response.ok) setCompanies(await response.json());
         } catch (error) {
-            console.error("Failed to load pallet sorts", error);
+            console.error("Failed to load companies:", error);
+        }
+    }, [authFetch, apiUrl]);
+
+    const fetchPallets = useCallback(async () => {
+        try {
+            const response = await authFetch(`${apiUrl}/v1/admin/pallet`);
+            if (response.ok) setPallets(await response.json());
+        } catch (error) {
+            console.error("Failed to load pallets:", error);
         }
     }, [authFetch, apiUrl]);
 
     useEffect(() => {
         if (accounts.length > 0) {
+            fetchStocks();
+            fetchCompanies();
             fetchPallets();
-            fetchPalletSorts();
         }
-    }, [accounts, fetchPallets, fetchPalletSorts]);
+    }, [accounts, fetchStocks, fetchCompanies, fetchPallets]);
 
     // ─── Handlers ─────────────────────────────────────────────────────────────
 
     const handleCreate = async () => {
         setShowAlertFail(false);
         try {
-            const response = await authFetch(`${apiUrl}/v1/admin/pallet`, {
+            const response = await authFetch(`${apiUrl}/v1/admin/inventory`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    ...form,
-                    palletSort: { id: form.palletSortId },
-                }),
+                body: JSON.stringify(form),
             });
             if (response.ok) {
                 setShowNewModal(false);
                 setForm(EMPTY_FORM);
                 setShowToastCreateSuccess(true);
-                fetchPallets();
+                fetchStocks();
             } else {
                 setShowAlertFail(true);
             }
@@ -182,44 +180,33 @@ export default function PalletPage() {
         }
     };
 
-    const handleOpenEdit = (pallet: Pallet) => {
-        setSelectedPallet(pallet);
+    const handleOpenEdit = (stock: Stock) => {
+        setSelectedStock(stock);
         setForm({
-            name: pallet.name,
-            palletSortId: pallet.palletSort?.id ?? 0,
-            boards: pallet.boards,
-            nails: pallet.nails,
-            blocks: pallet.blocks,
-            length: pallet.length,
-            width: pallet.width,
-            height: pallet.height,
-            safeWorkingLoad: pallet.safeWorkingLoad,
-            weight: pallet.weight,
-            quality: pallet.quality,
-            url: pallet.url,
+            companyId: stock.company?.id ?? 0,
+            palletId: stock.pallet?.id ?? 0,
+            quantity: stock.quantity,
+            price: stock.price,
         });
         setShowAlertFail(false);
         setShowEditModal(true);
     };
 
     const handleEdit = async () => {
-        if (!selectedPallet) return;
+        if (!selectedStock) return;
         setShowAlertFail(false);
         try {
-            const response = await authFetch(`${apiUrl}/v1/admin/pallet/${selectedPallet.id}`, {
+            const response = await authFetch(`${apiUrl}/v1/admin/inventory/${selectedStock.id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    ...form,
-                    palletSort: { id: form.palletSortId },
-                }),
+                body: JSON.stringify(form),
             });
             if (response.ok) {
                 setShowEditModal(false);
-                setSelectedPallet(null);
+                setSelectedStock(null);
                 setForm(EMPTY_FORM);
                 setShowToastEditSuccess(true);
-                fetchPallets();
+                fetchStocks();
             } else {
                 setShowAlertFail(true);
             }
@@ -230,12 +217,12 @@ export default function PalletPage() {
 
     const handleDelete = async (id: number) => {
         try {
-            const response = await authFetch(`${apiUrl}/v1/admin/pallet/${id}`, {
+            const response = await authFetch(`${apiUrl}/v1/admin/inventory/${id}`, {
                 method: "DELETE",
             });
             if (response.ok) {
                 setShowToastDeleteSuccess(true);
-                fetchPallets();
+                fetchStocks();
             } else {
                 setShowToastDeleteFail(true);
             }
@@ -252,10 +239,10 @@ export default function PalletPage() {
 
     // ─── Derived state ────────────────────────────────────────────────────────
 
-    const filteredPallets = pallets.filter((p) => {
-        const matchesSort = selectedSortId === 0 || p.palletSort?.id === selectedSortId;
-        const matchesQuality = selectedQuality === "" || p.quality === selectedQuality;
-        return matchesSort && matchesQuality;
+    const filteredStocks = stocks.filter((s) => {
+        const matchesCompany = selectedCompanyId === 0 || s.company?.id === selectedCompanyId;
+        const matchesPallet  = selectedPalletId  === 0 || s.pallet?.id  === selectedPalletId;
+        return matchesCompany && matchesPallet;
     });
 
     // ─── Shared modal body ────────────────────────────────────────────────────
@@ -264,137 +251,57 @@ export default function PalletPage() {
         <div className="d-flex flex-column gap-3 p-2">
             <Row>
                 <Col>
-                    <FloatingLabel label="Name *">
-                        <Form.Control
-                            placeholder="Name"
-                            value={form.name}
-                            onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-                        />
+                    <FloatingLabel label="Company *">
+                        <Form.Select
+                            value={form.companyId}
+                            onChange={(e) => setForm((p) => ({ ...p, companyId: Number(e.target.value) }))}
+                        >
+                            <option value={0}>— Select company —</option>
+                            {companies.map((c) => (
+                                <option key={c.id} value={c.id}>{c.title}</option>
+                            ))}
+                        </Form.Select>
                     </FloatingLabel>
                 </Col>
                 <Col>
-                    <FloatingLabel label="Pallet Sort *">
+                    <FloatingLabel label="Pallet *">
                         <Form.Select
-                            value={form.palletSortId}
-                            onChange={(e) => setForm((p) => ({ ...p, palletSortId: Number(e.target.value) }))}
+                            value={form.palletId}
+                            onChange={(e) => setForm((p) => ({ ...p, palletId: Number(e.target.value) }))}
                         >
-                            <option value={0}>— Select sort —</option>
-                            {palletSorts.map((s) => (
-                                <option key={s.id} value={s.id}>{s.name}</option>
+                            <option value={0}>— Select pallet —</option>
+                            {pallets.map((p) => (
+                                <option key={p.id} value={p.id}>
+                                    {p.palletSort?.name} – {p.name} ({p.quality})
+                                </option>
                             ))}
                         </Form.Select>
                     </FloatingLabel>
                 </Col>
             </Row>
-
             <Row>
                 <Col>
-                    <FloatingLabel label="Quality">
-                        <Form.Select
-                            value={form.quality}
-                            onChange={(e) => setForm((p) => ({ ...p, quality: e.target.value }))}
-                        >
-                            <option value="NEW">NEW</option>
-                            <option value="CLASS A">CLASS A</option>
-                            <option value="CLASS B">CLASS B</option>
-                            <option value="CLASS C">CLASS C</option>
-                        </Form.Select>
+                    <FloatingLabel label="Quantity">
+                        <Form.Control
+                            type="number"
+                            min={0}
+                            value={form.quantity}
+                            onChange={(e) => setForm((p) => ({ ...p, quantity: Number(e.target.value) }))}
+                        />
                     </FloatingLabel>
                 </Col>
                 <Col>
-                    <FloatingLabel label="Image URL">
+                    <FloatingLabel label="Price (€)">
                         <Form.Control
-                            type="url"
-                            placeholder="https://..."
-                            value={form.url}
-                            onChange={(e) => setForm((p) => ({ ...p, url: e.target.value }))}
+                            type="number"
+                            min={0}
+                            step="0.01"
+                            value={form.price}
+                            onChange={(e) => setForm((p) => ({ ...p, price: Number(e.target.value) }))}
                         />
                     </FloatingLabel>
                 </Col>
             </Row>
-
-            <Row>
-                <Col>
-                    <FloatingLabel label="Length (mm)">
-                        <Form.Control
-                            type="number"
-                            value={form.length}
-                            onChange={(e) => setForm((p) => ({ ...p, length: Number(e.target.value) }))}
-                        />
-                    </FloatingLabel>
-                </Col>
-                <Col>
-                    <FloatingLabel label="Width (mm)">
-                        <Form.Control
-                            type="number"
-                            value={form.width}
-                            onChange={(e) => setForm((p) => ({ ...p, width: Number(e.target.value) }))}
-                        />
-                    </FloatingLabel>
-                </Col>
-                <Col>
-                    <FloatingLabel label="Height (mm)">
-                        <Form.Control
-                            type="number"
-                            value={form.height}
-                            onChange={(e) => setForm((p) => ({ ...p, height: Number(e.target.value) }))}
-                        />
-                    </FloatingLabel>
-                </Col>
-            </Row>
-
-            <Row>
-                <Col>
-                    <FloatingLabel label="Boards">
-                        <Form.Control
-                            type="number"
-                            value={form.boards}
-                            onChange={(e) => setForm((p) => ({ ...p, boards: Number(e.target.value) }))}
-                        />
-                    </FloatingLabel>
-                </Col>
-                <Col>
-                    <FloatingLabel label="Nails">
-                        <Form.Control
-                            type="number"
-                            value={form.nails}
-                            onChange={(e) => setForm((p) => ({ ...p, nails: Number(e.target.value) }))}
-                        />
-                    </FloatingLabel>
-                </Col>
-                <Col>
-                    <FloatingLabel label="Blocks">
-                        <Form.Control
-                            type="number"
-                            value={form.blocks}
-                            onChange={(e) => setForm((p) => ({ ...p, blocks: Number(e.target.value) }))}
-                        />
-                    </FloatingLabel>
-                </Col>
-            </Row>
-
-            <Row>
-                <Col>
-                    <FloatingLabel label="Safe Working Load (kg)">
-                        <Form.Control
-                            type="number"
-                            value={form.safeWorkingLoad}
-                            onChange={(e) => setForm((p) => ({ ...p, safeWorkingLoad: Number(e.target.value) }))}
-                        />
-                    </FloatingLabel>
-                </Col>
-                <Col>
-                    <FloatingLabel label="Weight (kg)">
-                        <Form.Control
-                            type="number"
-                            step="0.1"
-                            value={form.weight}
-                            onChange={(e) => setForm((p) => ({ ...p, weight: Number(e.target.value) }))}
-                        />
-                    </FloatingLabel>
-                </Col>
-            </Row>
-
             {showAlertFail && (
                 <p className="text-danger mb-0">Something went wrong. Please try again.</p>
             )}
@@ -408,29 +315,30 @@ export default function PalletPage() {
             <AuthenticatedTemplate>
                 <Container className="d-flex flex-column gap-2 py-3">
 
-                    {/* Search + Add */}
+                    {/* Filters + Add */}
                     <Row className="mb-2">
                         <Col xxl={5}>
                             <Form.Select
-                                value={selectedSortId}
-                                onChange={(e) => setSelectedSortId(Number(e.target.value))}
+                                value={selectedCompanyId}
+                                onChange={(e) => setSelectedCompanyId(Number(e.target.value))}
                             >
-                                <option value={0}>All pallet sorts</option>
-                                {palletSorts.map((s) => (
-                                    <option key={s.id} value={s.id}>{s.name}</option>
+                                <option value={0}>All companies</option>
+                                {companies.map((c) => (
+                                    <option key={c.id} value={c.id}>{c.title}</option>
                                 ))}
                             </Form.Select>
                         </Col>
                         <Col xxl={5}>
                             <Form.Select
-                                value={selectedQuality}
-                                onChange={(e) => setSelectedQuality(e.target.value)}
+                                value={selectedPalletId}
+                                onChange={(e) => setSelectedPalletId(Number(e.target.value))}
                             >
-                                <option value="">All qualities</option>
-                                <option value="new">NEW</option>
-                                <option value="class_a">CLASS A</option>
-                                <option value="class_b">CLASS B</option>
-                                <option value="class_c">CLASS C</option>
+                                <option value={0}>All pallets</option>
+                                {pallets.map((p) => (
+                                    <option key={p.id} value={p.id}>
+                                        {p.palletSort?.name} – {p.name} ({p.quality})
+                                    </option>
+                                ))}
                             </Form.Select>
                         </Col>
                         <Col xxl={2}>
@@ -440,12 +348,12 @@ export default function PalletPage() {
                                 onClick={() => setShowNewModal(true)}
                             >
                                 <AddIcon fontSize="small" />
-                                Add pallet
+                                Add stock
                             </Button>
                         </Col>
                     </Row>
 
-                    {/* Pallet table */}
+                    {/* Stock table */}
                     {loading ? (
                         <div className="d-flex justify-content-center py-5">
                             <Spinner animation="border" variant="primary" />
@@ -454,41 +362,45 @@ export default function PalletPage() {
                         <Table hover responsive>
                             <thead>
                                 <tr>
-                                    <th>Name</th>
-                                    <th>Dimensions (mm)</th>
-                                    <th>Weight (kg)</th>
-                                    <th>SWL (kg)</th>
+                                    <th>Company</th>
+                                    <th>Sort</th>
+                                    <th>Pallet</th>
                                     <th>Quality</th>
+                                    <th>Quantity</th>
+                                    <th>Price (€)</th>
                                     <th></th>
                                     <th></th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredPallets.length === 0 ? (
+                                {filteredStocks.length === 0 ? (
                                     <tr>
-                                        <td colSpan={9} className="text-center text-muted py-4">
-                                            No pallets found.
+                                        <td colSpan={8} className="text-center text-muted py-4">
+                                            No stock entries found.
                                         </td>
                                     </tr>
                                 ) : (
-                                    filteredPallets.map((pallet) => {
-                                        const { bg, text } = getBadgeProps(pallet.quality);
+                                    filteredStocks.map((stock) => {
+                                        const { bg, text } = getBadgeProps(stock.pallet?.quality);
                                         return (
-                                            <tr key={pallet.id}>
-                                                <td>{pallet.name || "—"}</td>
-                                                <td>{pallet.length} × {pallet.width} × {pallet.height}</td>
-                                                <td>{pallet.weight}</td>
-                                                <td>{pallet.safeWorkingLoad}</td>
+                                            <tr key={stock.id}>
+                                                <td>{stock.company?.title || "—"}</td>
+                                                <td>{stock.pallet?.palletSort?.name || "—"}</td>
+                                                <td>{stock.pallet?.name || "—"}</td>
                                                 <td>
-                                                    <Badge pill bg={bg} text={text}>{pallet.quality}</Badge>
+                                                    <Badge pill bg={bg} text={text}>
+                                                        {stock.pallet?.quality || "—"}
+                                                    </Badge>
                                                 </td>
+                                                <td>{stock.quantity}</td>
+                                                <td>{stock.price.toFixed(2)}</td>
                                                 <td>
-                                                    <Button variant="outline-success" size="sm" onClick={() => handleOpenEdit(pallet)}>
+                                                    <Button variant="outline-success" size="sm" onClick={() => handleOpenEdit(stock)}>
                                                         <EditOutlinedIcon fontSize="small" />
                                                     </Button>
                                                 </td>
                                                 <td>
-                                                    <Button variant="outline-danger" size="sm" onClick={() => handleDelete(pallet.id)}>
+                                                    <Button variant="outline-danger" size="sm" onClick={() => handleDelete(stock.id)}>
                                                         <DeleteOutlineOutlinedIcon fontSize="small" />
                                                     </Button>
                                                 </td>
@@ -501,10 +413,10 @@ export default function PalletPage() {
                     )}
                 </Container>
 
-                {/* ── New Pallet Modal ── */}
+                {/* ── New Stock Modal ── */}
                 <Modal centered show={showNewModal} size="lg" onHide={handleCloseNewModal}>
                     <Modal.Header className="justify-content-center">
-                        <Modal.Title>Add pallet</Modal.Title>
+                        <Modal.Title>Add stock entry</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>{renderForm()}</Modal.Body>
                     <Modal.Footer>
@@ -523,10 +435,10 @@ export default function PalletPage() {
                     </Modal.Footer>
                 </Modal>
 
-                {/* ── Edit Pallet Modal ── */}
+                {/* ── Edit Stock Modal ── */}
                 <Modal centered show={showEditModal} size="lg" onHide={() => setShowEditModal(false)}>
                     <Modal.Header className="justify-content-center">
-                        <Modal.Title>Edit pallet</Modal.Title>
+                        <Modal.Title>Edit stock entry</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>{renderForm()}</Modal.Body>
                     <Modal.Footer>
@@ -548,16 +460,16 @@ export default function PalletPage() {
                 {/* ── Toasts ── */}
                 <ToastContainer position="middle-center">
                     <Toast bg="success" show={showToastCreateSuccess} autohide delay={3000} onClose={() => setShowToastCreateSuccess(false)}>
-                        <Toast.Body className="text-white">Pallet created successfully.</Toast.Body>
+                        <Toast.Body className="text-white">Stock entry created successfully.</Toast.Body>
                     </Toast>
                     <Toast bg="success" show={showToastEditSuccess} autohide delay={3000} onClose={() => setShowToastEditSuccess(false)}>
-                        <Toast.Body className="text-white">Pallet updated successfully.</Toast.Body>
+                        <Toast.Body className="text-white">Stock entry updated successfully.</Toast.Body>
                     </Toast>
                     <Toast bg="success" show={showToastDeleteSuccess} autohide delay={3000} onClose={() => setShowToastDeleteSuccess(false)}>
-                        <Toast.Body className="text-white">Pallet deleted successfully.</Toast.Body>
+                        <Toast.Body className="text-white">Stock entry deleted successfully.</Toast.Body>
                     </Toast>
                     <Toast bg="danger" show={showToastDeleteFail} autohide delay={3000} onClose={() => setShowToastDeleteFail(false)}>
-                        <Toast.Body className="text-white">Failed to delete pallet.</Toast.Body>
+                        <Toast.Body className="text-white">Failed to delete stock entry.</Toast.Body>
                     </Toast>
                 </ToastContainer>
             </AuthenticatedTemplate>

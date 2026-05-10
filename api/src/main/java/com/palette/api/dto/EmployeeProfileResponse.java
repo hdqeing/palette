@@ -1,5 +1,6 @@
 package com.palette.api.dto;
 
+import com.palette.api.model.Employee;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -12,4 +13,12 @@ public class EmployeeProfileResponse {
     private String firstName;
     private String lastName;
     private String preferredLanguage;
+
+    public EmployeeProfileResponse(Employee employee) {
+        this.id = employee.getId();
+        this.email = employee.getEmail();
+        this.firstName = employee.getFirstName();
+        this.lastName = employee.getLastName();
+        this.preferredLanguage = employee.getPreferredLanguage();
+    }
 }
