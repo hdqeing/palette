@@ -81,7 +81,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> updateEmployee(@RequestBody RegisterRequest request){
+    public ResponseEntity<?> updateEmployee(@RequestBody RegisterRequest request){
         String email = request.getEmail();
         String verificationCode = request.getVerificationCode();
         Employee employee = employeeRepository.findByEmail(email).orElseThrow(() -> new EmployeeNotFoundException(email));
@@ -89,8 +89,8 @@ public class AuthController {
             return ResponseEntity.badRequest().body("Your verification code is not valid.");
         } else {
             employee.setPassword(passwordEncoder.encode(request.getPassword()));
-            employeeRepository.save(employee);
-            return ResponseEntity.ok().body("Your password is saved");
+            Employee newEmployee = employeeRepository.save(employee);
+            return ResponseEntity.ok().body(newEmployee);
         }
     }
 
