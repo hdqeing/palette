@@ -187,7 +187,9 @@ public class SecurityConfig {
 
         converter.setJwtGrantedAuthoritiesConverter(jwt -> {
             List<GrantedAuthority> authorities = new ArrayList<>();
-            String issuer = jwt.getIssuer() != null ? jwt.getIssuer().toString() : "";
+
+            // Use getClaim("iss") as String instead of getIssuer() which tries to parse as URL
+            String issuer = jwt.getClaim("iss") != null ? jwt.getClaim("iss").toString() : "";
 
             if (issuer.contains("microsoftonline.com") || issuer.contains("sts.windows.net")) {
                 authorities.add(new SimpleGrantedAuthority("ENTRA"));
@@ -205,7 +207,6 @@ public class SecurityConfig {
 
         return converter;
     }
-
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
