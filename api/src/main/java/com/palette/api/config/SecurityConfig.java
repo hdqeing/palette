@@ -67,6 +67,9 @@ public class SecurityConfig {
     @Value("${spring.security.oauth2.resourceserver.jwt.entra.audience}")
     private String entraAudience;
 
+    @Value("${cors.allowed-origins}")
+    private String[] allowedOrigins;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -192,7 +195,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:5173", "http://localhost:3000"));
+        configuration.setAllowedOriginPatterns(Arrays.asList(allowedOrigins));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
