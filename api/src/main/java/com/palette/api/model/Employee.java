@@ -34,6 +34,9 @@ public class Employee {
     private String username;
     private boolean isAdmin;
 
+    @Column(unique = true)
+    private String entraOid; // Maps to the "oid" claim in Entra tokens
+
     @ManyToOne
     private Company company;
 

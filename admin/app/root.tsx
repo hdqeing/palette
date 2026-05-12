@@ -9,6 +9,9 @@ import {
 
 import type { Route } from "./+types/root";
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { MsalProvider } from "@azure/msal-react";
+import { EventType, PublicClientApplication } from "@azure/msal-browser";
+import { msalConfig } from "./authConfig";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -22,6 +25,18 @@ export const links: Route.LinksFunction = () => [
     href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
   },
 ];
+
+const msalInstance = new PublicClientApplication(msalConfig);
+
+if (!msalInstance.getActiveAccount() && msalInstance.getAllAccounts().length > 0) {
+  msalInstance.setActiveAccount(msalInstance.getAllAccounts()[0]);
+}
+
+msalInstance.addEventCallback((event) => {
+  if (event.eventType === EventType.LOGIN_SUCCESS && event.payload?.account) {
+    msalInstance.setActiveAccount(event.payload.account);
+  }
+})
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -42,7 +57,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />;
+  return (
+    <MsalProvider instance={msalInstance}>
+      <Outlet />
+    </MsalProvider>
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
