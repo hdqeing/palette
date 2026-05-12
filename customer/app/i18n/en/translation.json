@@ -59,6 +59,7 @@
   "toast_quote_rejected": "The quote has been rejected.",
   "email": "Email",
   "password": "Password",
+  "confirm_password": "Confirm Password",
   "msg_sign_up": "New to Palette365? Click to",
   "requests": "Requests",
   "type": "Type",
@@ -70,5 +71,24 @@
   "immediately_available": "Immediately Available",
   "from": "From",
   "no_price_available": "No Price Available",
-  "msg_sign_out": "Are you sure you want to sign out?"
+  "msg_sign_out": "Are you sure you want to sign out?",
+  "verify_email": "Verify Email",
+  "set_password": "Set Password",
+  "update_profile": "Update Profile",
+  "send_verification_code": "Send Verification Code",
+  "msg_code_sent": "An Email with verification code has been sent to you. Please enter received code in following field.",
+  "verification_code": "Verification Code",
+  "msg_code_incorrect": "Sorry, your verification code is not correct. Please try again!",
+  "msg_password_not_identical": "Sorry, your passwords are not identical. Please try again!",
+  "msg_update_profile": "You can update your profiles now. Otherwise, you can always update it later.",
+  "firstname": "Firstname",
+  "lastname": "Lastname",
+  "salutation": "Salutation",
+  "language": "Language",
+  "mr": "Mr.",
+  "ms": "Ms.",
+  "english": "English",
+  "german": "Deutsch",
+  "russian": "Русский"
+
 }

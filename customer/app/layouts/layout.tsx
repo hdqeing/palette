@@ -28,6 +28,8 @@ export default function Layout() {
   const { t, i18n } = useTranslation();
 
   const [paletteInCart, setPaletteInCart] = useState<CartEntity[]>([]);
+  // Add this state alongside your other states
+  const [registeredEmployeeId, setRegisteredEmployeeId] = useState<number | null>(null);
   const [showCart, setShowCart] = useState(false);
   const [showAlertVerificationEmailSent, setShowAlertVerificationEmailSent] = useState(false);
   const [showAlertVerificationFailed, setShowAlertVerificationFailed] = useState(false);
@@ -76,274 +78,294 @@ export default function Layout() {
 
 
 
-    const handleLanguageChange = (language: string) => {
-        setAlternativeLanguages((prev) => [
-            selectedLanguage,
-            ...prev.filter((l) => l !== language)
-        ]);
+  const handleLanguageChange = (language: string) => {
+      setAlternativeLanguages((prev) => [
+          selectedLanguage,
+          ...prev.filter((l) => l !== language)
+      ]);
 
-        setSelectedLanguage(language);
-        switch (language) {
-          case "Deutsch":
-            i18n.changeLanguage("de");
-            break;
-          case "Русский":
-            i18n.changeLanguage("ru");
-            break;
-          default:
-            i18n.changeLanguage("en")
-            break;
-        }
-    };
+      setSelectedLanguage(language);
+      switch (language) {
+        case "Deutsch":
+          i18n.changeLanguage("de");
+          break;
+        case "Русский":
+          i18n.changeLanguage("ru");
+          break;
+        default:
+          i18n.changeLanguage("en")
+          break;
+      }
+  };
 
   const handleShowCart = () => {
-    setShowCart(true);
+  setShowCart(true);
   }
 
   const handleHideCart = () => {
-    setShowCart(false);
+  setShowCart(false);
   }
-
-
-
 
   const handleHideNotification = () => {
-    setShowNotification(false);
+  setShowNotification(false);
   }
 
+  const handleLogout = async () => {
 
+      try {
+          const response = await fetch(`${apiUrl}/v1/auth/logout`, {
+              method: "POST",
+              headers: {
+                  "Accept": "*/*",
+                  "Content-Type": "application/json"
+              },
+              credentials: "include",
+          });
 
-    const handleLogout = async () => {
+          if (response.status === 200){
+              setShowModalLogoutConfirm(false);
+              setShowToastLogoutConfirm(true);
+              setAuthenticated(false);
+          } else {
+              console.log(response.json)
+          }
 
-        try {
-            const response = await fetch(`${apiUrl}/v1/auth/logout`, {
-                method: "POST",
-                headers: {
-                    "Accept": "*/*",
-                    "Content-Type": "application/json"
-                },
-                credentials: "include",
-            });
+      } catch (error) {
+          console.log(error)
+      }
+      
+  };
 
-            if (response.status === 200){
-                setShowModalLogoutConfirm(false);
-                setShowToastLogoutConfirm(true);
-                setAuthenticated(false);
-            } else {
-                console.log(response.json)
-            }
+  const handleLogin = async () => {
 
-        } catch (error) {
-            console.log(error)
-        }
-        
-    };
+      try{
+          const response = await fetch(`${apiUrl}/v1/auth/login`, {
+              method: 'POST',
+              headers: {
+                  "Accept": "*/*",
+                  "Content-Type": "application/json"
+              },
+              credentials: "include",
+              body: JSON.stringify({
+                  email: emailLogin,
+                  password: passwordLogin
+              })
+          });
 
-    const handleLogin = async () => {
+          if (response.status === 200){
+              setShowLoginModal(false)
+              setShowToastLoginSuccess(true)
+              setAuthenticated(true)
+          } else {
+              setShowAlertPasswordIncorrect(true);
+          };
 
-        try{
-            const response = await fetch(`${apiUrl}/v1/auth/login`, {
-                method: 'POST',
-                headers: {
-                    "Accept": "*/*",
-                    "Content-Type": "application/json"
-                },
-                credentials: "include",
-                body: JSON.stringify({
-                    email: emailLogin,
-                    password: passwordLogin
-                })
-            });
-
-            if (response.status === 200){
-                setShowLoginModal(false)
-                setShowToastLoginSuccess(true)
-                setAuthenticated(true)
-            } else {
-                setShowAlertPasswordIncorrect(true);
-            };
-
-        } catch (error) {
-            console.log(error);
-        }
-
-    };
-
-  const handleHideModalLogin = () => {
-    setEmailLogin("");
-    setPasswordLogin("");
-    setShowLoginModal(false);
-  }
-
-
-
-
-
-
-  const handleEmailVerification = async () => {
-    try {
-      const response = await fetch(`${apiUrl}/v1/employee`, {
-        method: 'POST',
-        headers: {
-          "Accept": "*/*",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newEmployee),
-      });
-
-      if (response.status === 201) {
-        setShowAlertVerificationEmailSent(true);
-      } else if (response.status === 409) {
-        setEmailValid(false);
-        setIsEmailRegistered(true);
-      } else {
-        console.log(response.json())
+      } catch (error) {
+          console.log(error);
       }
 
-    } catch (error) {
-      console.log(error);
-    } 
+  };
+
+  const handleHideModalLogin = () => {
+  setEmailLogin("");
+  setPasswordLogin("");
+  setShowLoginModal(false);
   }
 
-    const handleRegisterNextStep = async () => {
-        if (currentTab === "email") {
-            try {
-                const response = await fetch(`${apiUrl}/v1/auth/verify`, {
-                    method: 'POST',
-                    headers: {
-                    "Accept": "*/*",
-                    "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        email: emailRegister,
-                        verificationCode: verificationCodeRegister
-                    }),
-                });
-
-                if (response.ok) {
-                    setEmailValid(true);
-                    setCurrentTab("password");
-
-                } else {
-                    setShowAlertVerificationFailed(true)
-                }
-
-
-            } catch (error) {
-                console.log(error);
-            }
-
-        } else if (currentTab === "password") {
-            if (passwordRegister !== passwordConfirmRegister){
-                setShowAlertPasswordInconsistent(true);
-            } else {
-                try {
-                const response = await fetch(`${apiUrl}/v1/auth/register`, {
-                    method: 'POST',
-                    headers: {
-                    "Accept": "*/*",
-                    "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        email: emailRegister,
-                        verificationCode: verificationCodeRegister,
-                        password: passwordRegister
-                    }),
-                });
-
-                if (response.ok) {
-                    setCurrentTab("profile");
-
-                } else {
-                    setShowAlertPasswordInconsistent(true)
-                }
-
-                } catch (error) {
-                    console.log(error)
-                }
-            }
-
-        } else {
-
-        }
-    }
-
-    const getProfile = async () => {
-        try {
-        const response = await fetch(`${apiUrl}/v1/auth/profile`, {
-        credentials: 'include'
-        });
-
-        if (response.ok) {
-        const data = await response.json();
-            setAuthenticated(true);
-            setMyProfile(data);
-        }
-
-        } catch (error) {
-            console.log(error)
-
-        }
-
-    };
-
-    const getCart = async () => {
-        const response = await fetch(`${apiUrl}/v1/carts`, {
-            credentials: 'include'
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            setPaletteInCart(data);
-        }
-
-    };
-
-
-    useEffect(()=>{
-        getProfile();
-        getCart();
-    }, [])
-
-const updateCart = async () => {
-    const payload = {
-  items: paletteInCart.map(item => ({
-    palletId: item.pallet?.id,
-    quantity: item.quantity
-  }))
-};
+  const handleEmailVerification = async () => {
   try {
-    const response = await fetch(`${apiUrl}/v1/carts`, {
-      method: "PUT",
-      credentials: "include",
+    const response = await fetch(`${apiUrl}/v1/employee`, {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json"
+        "Accept": "*/*",
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(newEmployee),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(errorText);
+    if (response.status === 201) {
+      setShowAlertVerificationEmailSent(true);
+    } else if (response.status === 409) {
+      setEmailValid(false);
+      setIsEmailRegistered(true);
+    } else {
+      console.log(response.json())
     }
 
-    const data = await response.json();
-    console.log("Cart updated:", data);
+  } catch (error) {
+    console.log(error);
+  } 
+  }
+
+  const handleRegisterNextStep = async () => {
+      if (currentTab === "email") {
+          try {
+              const response = await fetch(`${apiUrl}/v1/auth/verify`, {
+                  method: 'POST',
+                  headers: {
+                      "Accept": "*/*",
+                      "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                      email: emailRegister,
+                      verificationCode: verificationCodeRegister
+                  }),
+              });
+
+              if (response.ok) {
+                  setEmailValid(true);
+                  setShowAlertVerificationFailed(false);
+                  setCurrentTab("password");
+              } else {
+                  setShowAlertVerificationFailed(true);
+              }
+          } catch (error) {
+              console.log(error);
+          }
+
+      } else if (currentTab === "password") {
+          if (passwordRegister !== passwordConfirmRegister) {
+              setShowAlertPasswordInconsistent(true);
+              return;
+          }
+
+          try {
+              const response = await fetch(`${apiUrl}/v1/auth/register`, {
+                  method: 'POST',
+                  headers: {
+                      "Accept": "*/*",
+                      "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                      email: emailRegister,
+                      verificationCode: verificationCodeRegister,
+                      password: passwordRegister
+                  }),
+              });
+
+              if (response.ok) {
+                  const employee = await response.json();
+                  setRegisteredEmployeeId(employee.id); // save for profile step
+                  setShowAlertPasswordInconsistent(false);
+                  setCurrentTab("profile");
+              } else {
+                  setShowAlertPasswordInconsistent(true);
+              }
+          } catch (error) {
+              console.log(error);
+          }
+
+      } else if (currentTab === "profile") {
+          if (!registeredEmployeeId) return;
+
+          try {
+              const response = await fetch(`${apiUrl}/v1/employee/${registeredEmployeeId}`, {
+                  method: 'PUT',
+                  headers: {
+                      "Accept": "*/*",
+                      "Content-Type": "application/json",
+                  },
+                  credentials: 'include', // sends the jwt-token cookie set during register
+                  body: JSON.stringify({
+                      email: newEmployee.email,
+                      username: newEmployee.username,
+                      firstName: newEmployee.firstName,
+                      lastName: newEmployee.lastName,
+                      preferredLanguage: newEmployee.preferredLanguage,
+                      telephone: newEmployee.telephone,
+                      salutation: newEmployee.salutation,
+                      companyId: null
+                  }),
+              });
+
+              if (response.ok) {
+                  setShowRegisterModal(false);
+                  // optionally redirect or show success toast
+              } else {
+                  console.error("Failed to update profile:", await response.text());
+              }
+          } catch (error) {
+              console.log(error);
+          }
+      }
+  };
+
+  const getProfile = async () => {
+      try {
+      const response = await fetch(`${apiUrl}/v1/auth/profile`, {
+      credentials: 'include'
+      });
+
+      if (response.ok) {
+      const data = await response.json();
+          setAuthenticated(true);
+          setMyProfile(data);
+      }
+
+      } catch (error) {
+          console.log(error)
+
+      }
+
+  };
+
+  const getCart = async () => {
+      const response = await fetch(`${apiUrl}/v1/carts`, {
+          credentials: 'include'
+      });
+
+      if (response.ok) {
+          const data = await response.json();
+          setPaletteInCart(data);
+      }
+
+  };
+
+
+  useEffect(()=>{
+      getProfile();
+      getCart();
+  }, [])
+
+  const updateCart = async () => {
+  const payload = {
+  items: paletteInCart.map(item => ({
+  palletId: item.pallet?.id,
+  quantity: item.quantity
+  }))
+  };
+  try {
+  const response = await fetch(`${apiUrl}/v1/carts`, {
+    method: "PUT",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText);
+  }
+
+  const data = await response.json();
+  console.log("Cart updated:", data);
 
   } catch (error) {
-    console.error("Error updating cart:", error);
+  console.error("Error updating cart:", error);
   }
-};
+  };
 
-useEffect(() => {
+  useEffect(() => {
   if (paletteInCart.length === 0) return;
 
   const timeout = setTimeout(() => {
-    updateCart();
+  updateCart();
   }, 500);
 
   return () => clearTimeout(timeout);
-}, [paletteInCart]);
+  }, [paletteInCart]);
 
   return (
     <div className="d-flex flex-column align-items-center">
@@ -522,70 +544,61 @@ useEffect(() => {
       <Modal show={showRegisterModal} centered size="lg">
         <Modal.Header className="justify-content-center gap-2">
             <PersonAdd color="success"></PersonAdd>
-          <Modal.Title>Registrieren</Modal.Title>
+          <Modal.Title>{t("sign_up")}</Modal.Title>
         </Modal.Header>
 
         <Modal.Body className="d-flex flex-column">
             <Tabs defaultActiveKey="email" fill activeKey={currentTab}>
-                <Tab title="Email verifizieren" eventKey="email" style={{ height: "30vh" }}>
+                <Tab title={t("verify_email")} eventKey="email" style={{ height: "30vh" }}>
                     <Form className="d-flex flex-column justify-content-evenly h-100">
                         <InputGroup>
-                            <FloatingLabel label="Email">
+                            <FloatingLabel label={t("email")}>
                                 <Form.Control type="email" onChange={(e) => {setEmailRegister(e.target.value);setNewEmployee((prev: CreateEmployeeForm) =>({...prev, email: e.target.value}))}}></Form.Control>
                             </FloatingLabel>
 
                             <Button variant="outline-success" className="d-flex align-items-center gap-2" onClick={handleEmailVerification}>
                                 <Email></Email>
-                                <p className="m-0">Send Verification Code</p>
+                                <p className="m-0">{t("send_verification_code")}</p>
                             </Button>
                         </InputGroup>
 
-                        <Alert variant="success m-0" show={showAlertVerificationEmailSent}><CheckIcon color="success" className="me-2"></CheckIcon>An Email with verification code has been sent to you. Please enter received code in following field.</Alert>
+                        <Alert variant="success m-0" show={showAlertVerificationEmailSent}><CheckIcon color="success" className="me-2"></CheckIcon>{t("msg_code_sent")}</Alert>
 
-                        <FloatingLabel label="Verification Code">
+                        <FloatingLabel label={t("verification_code")}>
                             <Form.Control disabled={!showAlertVerificationEmailSent}  onChange={(e) => setVerificationCodeRegister(e.target.value)}></Form.Control>
                         </FloatingLabel>
 
-                        <Alert variant="danger m-0" show={showAlertVerificationFailed}><WarningIcon color="error" className="me-2"></WarningIcon>Sorry, your verification code is not correct. Please try again!</Alert>
+                        <Alert variant="danger m-0" show={showAlertVerificationFailed}><WarningIcon color="error" className="me-2"></WarningIcon>{t("msg_code_incorrect")}</Alert>
                     </Form>                
                 </Tab>
 
-                <Tab title="Passwort eingeben" eventKey="password" style={{ height: "30vh" }} disabled={!emailValid}>
+                <Tab title={t("set_password")} eventKey="password" style={{ height: "30vh" }} disabled={!emailValid}>
                     <Form className="d-flex flex-column justify-content-around h-100">
-                        <FloatingLabel label="Password">
+                        <FloatingLabel label={t("password")}>
                             <Form.Control type="password" disabled={!emailValid} value={passwordRegister} onChange={(e) => setPasswordRegister(e.target.value)}></Form.Control>
                         </FloatingLabel>
 
-                        <FloatingLabel label="Password wiederholen">
+                        <FloatingLabel label={t("confirm_password")}>
                             <Form.Control type="password" disabled={!emailValid} value={passwordConfirmRegister} onChange={(e) => setPasswordConfirmRegister(e.target.value)}></Form.Control>
                         </FloatingLabel>
 
-                        <Alert variant="danger m-0" show={showAlertPasswordInconsistent}><WarningIcon color="error" className="me-2"></WarningIcon>Sorry, your passwords are not identical. Please try again!</Alert>
-
+                        <Alert variant="danger m-0" show={showAlertPasswordInconsistent}><WarningIcon color="error" className="me-2"></WarningIcon>{t("msg_password_not_identical")}</Alert>
                     </Form>                
                 </Tab>
 
-                <Tab title="Profil ergänzen" eventKey="profile" style={{ height: "30vh" }}>
+                <Tab title={t("update_profile")} eventKey="profile" style={{ height: "30vh" }}>
                     <Form className="d-flex flex-column gap-3">
-                        <Form.Text>You can update your profiles now. Otherwise, you can always update it later.</Form.Text>
+                        <Form.Text>{t("msg_update_profile")}</Form.Text>
+
                         <Row>
                             <Col>
-                                <FloatingLabel label="Salutation">
-                                    <Form.Select onChange={(e) => {setNewEmployee((prev: CreateEmployeeForm) => ({...prev, salutation: e.target.value}))}}>
-                                        <option value="mr">Mr.</option>
-                                        <option value="ms">Ms.</option>
-                                    </Form.Select>
-                                </FloatingLabel>
-                            </Col>
-
-                            <Col>
-                                <FloatingLabel label="Firstname">
+                                <FloatingLabel label={t("firstname")}>
                                     <Form.Control onChange={(e) => {setNewEmployee((prev: CreateEmployeeForm) => ({...prev, firstName: e.target.value}))}}></Form.Control>
                                 </FloatingLabel>
                             </Col>
 
                             <Col>
-                                <FloatingLabel label="Lastname">
+                                <FloatingLabel label={t("lastname")}>
                                     <Form.Control onChange={(e) => {setNewEmployee((prev: CreateEmployeeForm) => ({...prev, lastName: e.target.value}))}}></Form.Control>
                                 </FloatingLabel>
                             </Col>
@@ -593,28 +606,24 @@ useEffect(() => {
 
                         <Row>
                             <Col>
-                                <FloatingLabel label="Language">
-                                    <Form.Select onChange={(e) => {setNewEmployee((prev: CreateEmployeeForm) => ({...prev, preferredLanguage: e.target.value}))}}>
-                                        <option value="GB">English</option>
-                                        <option value="DE">Deutsch</option>
-                                        <option value="RU">Русский</option>
+                                <FloatingLabel label={t("salutation")}>
+                                    <Form.Select onChange={(e) => {setNewEmployee((prev: CreateEmployeeForm) => ({...prev, salutation: e.target.value}))}}>
+                                        <option value="mr">{t("mr")}</option>
+                                        <option value="ms">{t("ms")}</option>
                                     </Form.Select>
                                 </FloatingLabel>
                             </Col>
 
                             <Col>
-                                <FloatingLabel label="Username">
-                                    <Form.Control onChange={(e) => {setNewEmployee((prev: CreateEmployeeForm) => ({...prev, username: e.target.value}))}}></Form.Control>
-                                </FloatingLabel>
-                            </Col>
-
-                            <Col>
-                                <FloatingLabel label="Telephone">
-                                    <Form.Control onChange={(e) => {setNewEmployee((prev: CreateEmployeeForm) => ({...prev, telephone: e.target.value}))}}></Form.Control>
+                                <FloatingLabel label={t("language")}>
+                                    <Form.Select onChange={(e) => {setNewEmployee((prev: CreateEmployeeForm) => ({...prev, preferredLanguage: e.target.value}))}}>
+                                        <option value="GB">{t("english")}</option>
+                                        <option value="DE">{t("german")}</option>
+                                        <option value="RU">{t("russian")}</option>
+                                    </Form.Select>
                                 </FloatingLabel>
                             </Col>
                         </Row>
-
                     </Form>
                 </Tab>
             </Tabs>
@@ -622,8 +631,8 @@ useEffect(() => {
 
 
         <Modal.Footer className="justify-content-between">
-          <Button className="w-25" variant="outline-danger">Abbrechen</Button>
-          <Button className="w-25" variant="success" onClick={handleRegisterNextStep}>Weiter</Button>
+          <Button className="w-25" variant="outline-danger">{t("cancel")}</Button>
+          <Button className="w-25" variant="success" onClick={handleRegisterNextStep}>{t("next")}</Button>
         </Modal.Footer>
       </Modal>
 
