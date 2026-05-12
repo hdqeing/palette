@@ -375,7 +375,7 @@ export default function Layout() {
           <Col className="p-0">
             <Navbar.Brand href="/" className="d-flex align-items-center gap-2">
                 <Image src="/iconPalette.svg" style={{ height: "64px", width: "auto" }}></Image>
-                <h1 className="m-0 text-success">Palette365</h1>
+                <h1 className="m-0 text-success">Palletly</h1>
             </Navbar.Brand> 
           </Col>
 
@@ -409,13 +409,13 @@ export default function Layout() {
                       </Dropdown.Menu>
                     </Dropdown>
 
-                    <Button variant="outline-danger" onClick={() => setShowModalLogoutConfirm(true)}><Logout></Logout>{t("sign_out")}</Button>
+                    <Button variant="outline-danger" onClick={() => setShowModalLogoutConfirm(true)}>{t("sign_out")}</Button>
                   </>
 
                 ) : (
                   <>
-                    <Button onClick={() => setShowLoginModal(true)} variant="success"><Login></Login>{t("sign_in")}</Button>
-                    <Button onClick={() => setShowRegisterModal(true)} variant="outline-success"><PersonAdd></PersonAdd>{t("sign_up")}</Button>                  
+                    <Button onClick={() => setShowLoginModal(true)} variant="success">{t("sign_in")}</Button>
+                    <Button onClick={() => setShowRegisterModal(true)} variant="outline-success">{t("sign_up")}</Button>                  
                   </>
                 )
                 }
