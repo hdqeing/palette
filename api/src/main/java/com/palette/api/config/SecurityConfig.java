@@ -119,8 +119,8 @@ public class SecurityConfig {
     }
 
     /**
-     * Routes each incoming JWT to the right decoder based on its "iss" (issuer) claim.
-     * No decoding happens before routing — we just peek at the unverified claim to decide.
+     * Routes each incoming JWT to the right decoder based on the request path.
+     * /v1/admin/** uses the Entra decoder, all other endpoints use the local HS256 decoder.
      */
     @Bean
     public JwtDecoder multiTenantJwtDecoder() {
@@ -128,9 +128,13 @@ public class SecurityConfig {
         JwtDecoder entraDecoder = entraJwtDecoder();
 
         return token -> {
-            String issuer = extractIssuerUnchecked(token);
+            jakarta.servlet.http.HttpServletRequest request =
+                    ((org.springframework.web.context.request.ServletRequestAttributes)
+                            org.springframework.web.context.request.RequestContextHolder
+                                    .getRequestAttributes())
+                            .getRequest();
 
-            if (issuer != null && (issuer.contains("microsoftonline.com") || issuer.contains("sts.windows.net"))) {
+            if (request.getRequestURI().startsWith("/v1/admin/")) {
                 return entraDecoder.decode(token);
             } else {
                 return localDecoder.decode(token);
@@ -161,24 +165,6 @@ public class SecurityConfig {
         return decoder;
     }
 
-    /**
-     * Reads the "iss" claim from the JWT payload WITHOUT verifying the signature.
-     * Safe because we only use it to choose which decoder to run —
-     * the chosen decoder still fully verifies the signature.
-     */
-    private String extractIssuerUnchecked(String token) {
-        try {
-            String[] parts = token.split("\\.");
-            if (parts.length < 2) return null;
-            String payload = new String(Base64.getUrlDecoder().decode(parts[1]));
-            int issStart = payload.indexOf("\"iss\":\"") + 7;
-            if (issStart < 7) return null;
-            int issEnd = payload.indexOf("\"", issStart);
-            return payload.substring(issStart, issEnd);
-        } catch (Exception e) {
-            return null;
-        }
-    }
 
     /**
      * Maps token origin to Spring Security authorities.
