@@ -142,10 +142,20 @@ public class SecurityConfig {
         };
     }
 
-    // HS256 decoder for local users
     private JwtDecoder localJwtDecoder() {
         byte[] bytes = Base64.getDecoder().decode(this.secretKey);
-        return NimbusJwtDecoder.withSecretKey(new SecretKeySpec(bytes, "HmacSHA256")).build();
+        NimbusJwtDecoder decoder = NimbusJwtDecoder
+                .withSecretKey(new SecretKeySpec(bytes, "HmacSHA256"))
+                .build();
+
+        // "self" is not a URL — override the default converter to keep iss as a plain String
+        decoder.setClaimSetConverter(
+                MappedJwtClaimSetConverter.withDefaults(
+                        Collections.singletonMap("iss", claim -> claim)
+                )
+        );
+
+        return decoder;
     }
 
     // RS256 decoder for Entra ID tokens
