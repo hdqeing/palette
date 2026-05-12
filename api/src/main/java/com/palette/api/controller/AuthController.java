@@ -181,24 +181,26 @@ public class AuthController {
     }
 
     @GetMapping("/profile")
-    public ResponseEntity<?> getProfile(
-            @AuthenticationPrincipal Jwt jwt) { // Spring injects the validated Entra JWT
+    public ResponseEntity<?> getProfile(@CookieValue(value = "jwt-token", required = false) String token){
+        try {
+            if (token == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Missing token");
+            }
 
-        // Option A: look up by Entra OID (most reliable)
-        String oid = jwt.getClaimAsString("oid");
-        Employee employee = employeeRepository.findByEntraOid(oid)
-                .orElseGet(() -> {
-                    // Auto-provision: first time this Entra user hits your API,
-                    // link them to an existing Employee by email, or create one
-                    String email = jwt.getClaimAsString("preferred_username"); // or "email"
-                    return employeeRepository.findByEmail(email)
-                            .map(emp -> {
-                                emp.setEntraOid(oid); // Link on first login
-                                return employeeRepository.save(emp);
-                            })
-                            .orElseThrow(() -> new EmployeeNotFoundException(email));
-                });
+            Jwt jwt = jwtDecoder.decode(token);
+            String email = jwt.getSubject();
 
-        return ResponseEntity.ok(new EmployeeProfileResponse(employee));
+            Employee employee = employeeRepository.findByEmail(email)
+                    .orElseThrow(() -> new EmployeeNotFoundException(email));
+            return ResponseEntity.ok().body(employee);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace(); // or use a logger
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error: " + e.getMessage()); // expose the real message temporarily
+        }
     }
+
 }
