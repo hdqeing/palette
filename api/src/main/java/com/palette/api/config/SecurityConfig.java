@@ -1,12 +1,9 @@
 package com.palette.api.config;
 
 import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.OctetSequenceKey;
-import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
-import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,7 +11,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.GrantedAuthority;
@@ -28,6 +24,8 @@ import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
+import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
+import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.oauth2.server.resource.web.access.BearerTokenAccessDeniedHandler;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
@@ -35,13 +33,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import javax.crypto.spec.SecretKeySpec;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
 import java.util.*;
-
 
 @Configuration
 public class SecurityConfig {
@@ -61,10 +53,10 @@ public class SecurityConfig {
     @Value("${security.jwt.secret-key}")
     private String secretKey;
 
-    @Value("${spring.security.oauth2.resourceserver.jwt.entra.issuer-uri}")
+    @Value("${spring.security.oauth2.resourceserver.jwt.entra.issuer-uri:}")
     private String entraIssuerUri;
 
-    @Value("${spring.security.oauth2.resourceserver.jwt.entra.audience}")
+    @Value("${spring.security.oauth2.resourceserver.jwt.entra.audience:}")
     private String entraAudience;
 
     @Value("${cors.allowed-origins}")
@@ -83,6 +75,7 @@ public class SecurityConfig {
                         .anyRequest().permitAll()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
+                        .bearerTokenResolver(cookieAndHeaderTokenResolver())
                         .jwt(jwt -> jwt
                                 .decoder(multiTenantJwtDecoder())
                                 .jwtAuthenticationConverter(jwtAuthenticationConverter())
@@ -98,6 +91,34 @@ public class SecurityConfig {
     }
 
     /**
+     * Checks Authorization header first (for Entra Bearer tokens),
+     * then falls back to the jwt-token cookie (for local users).
+     */
+    @Bean
+    public BearerTokenResolver cookieAndHeaderTokenResolver() {
+        DefaultBearerTokenResolver headerResolver = new DefaultBearerTokenResolver();
+
+        return request -> {
+            // Try Authorization header first (Entra admin tokens)
+            String headerToken = headerResolver.resolve(request);
+            if (headerToken != null) {
+                return headerToken;
+            }
+
+            // Fall back to cookie (local user tokens)
+            if (request.getCookies() != null) {
+                for (jakarta.servlet.http.Cookie cookie : request.getCookies()) {
+                    if ("jwt-token".equals(cookie.getName())) {
+                        return cookie.getValue();
+                    }
+                }
+            }
+
+            return null;
+        };
+    }
+
+    /**
      * Routes each incoming JWT to the right decoder based on its "iss" (issuer) claim.
      * No decoding happens before routing — we just peek at the unverified claim to decide.
      */
@@ -107,7 +128,6 @@ public class SecurityConfig {
         JwtDecoder entraDecoder = entraJwtDecoder();
 
         return token -> {
-            // Peek at the issuer claim without verifying the signature yet
             String issuer = extractIssuerUnchecked(token);
 
             if (issuer != null && (issuer.contains("microsoftonline.com") || issuer.contains("sts.windows.net"))) {
@@ -118,17 +138,16 @@ public class SecurityConfig {
         };
     }
 
-    // Your existing HS256 decoder
+    // HS256 decoder for local users
     private JwtDecoder localJwtDecoder() {
         byte[] bytes = Base64.getDecoder().decode(this.secretKey);
         return NimbusJwtDecoder.withSecretKey(new SecretKeySpec(bytes, "HmacSHA256")).build();
     }
 
-    // Entra RS256 decoder — Spring auto-fetches the JWKS from the issuer URI
+    // RS256 decoder for Entra ID tokens
     private JwtDecoder entraJwtDecoder() {
         NimbusJwtDecoder decoder = JwtDecoders.fromIssuerLocation(entraIssuerUri);
 
-        // Validate the audience claim so only tokens meant for your API are accepted
         OAuth2TokenValidator<Jwt> audienceValidator = jwt -> {
             if (jwt.getAudience().contains(entraAudience)) {
                 return OAuth2TokenValidatorResult.success();
@@ -144,7 +163,7 @@ public class SecurityConfig {
 
     /**
      * Reads the "iss" claim from the JWT payload WITHOUT verifying the signature.
-     * This is safe here because we only use it to choose which decoder to run —
+     * Safe because we only use it to choose which decoder to run —
      * the chosen decoder still fully verifies the signature.
      */
     private String extractIssuerUnchecked(String token) {
@@ -152,7 +171,6 @@ public class SecurityConfig {
             String[] parts = token.split("\\.");
             if (parts.length < 2) return null;
             String payload = new String(Base64.getUrlDecoder().decode(parts[1]));
-            // Simple string check — no need for a full JSON parser
             int issStart = payload.indexOf("\"iss\":\"") + 7;
             if (issStart < 7) return null;
             int issEnd = payload.indexOf("\"", issStart);
@@ -163,8 +181,9 @@ public class SecurityConfig {
     }
 
     /**
-     * Adds a custom "SOURCE" authority so controllers can distinguish token origin.
-     * Entra tokens get ENTRA authority; local tokens get LOCAL authority.
+     * Maps token origin to Spring Security authorities.
+     * Entra tokens get ENTRA + SCOPE_* authorities.
+     * Local tokens get LOCAL authority.
      */
     @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
@@ -176,8 +195,6 @@ public class SecurityConfig {
 
             if (issuer.contains("microsoftonline.com") || issuer.contains("sts.windows.net")) {
                 authorities.add(new SimpleGrantedAuthority("ENTRA"));
-
-                // Map scp claim to Spring authorities
                 String scp = jwt.getClaimAsString("scp");
                 if (scp != null) {
                     Arrays.stream(scp.split(" "))
@@ -189,6 +206,7 @@ public class SecurityConfig {
 
             return authorities;
         });
+
         return converter;
     }
 
@@ -208,10 +226,8 @@ public class SecurityConfig {
     @Bean
     public JavaMailSender getJavaMailSender() {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-
         mailSender.setHost(host);
         mailSender.setPort(port);
-
         mailSender.setUsername(username);
         mailSender.setPassword(password);
 
@@ -222,8 +238,6 @@ public class SecurityConfig {
         props.put("mail.debug", "true");
 
         return mailSender;
-
-
     }
 
     @Bean
@@ -242,11 +256,9 @@ public class SecurityConfig {
         byte[] bytes = Base64.getDecoder().decode(this.secretKey);
         OctetSequenceKey jwk = new OctetSequenceKey.Builder(bytes)
                 .algorithm(JWSAlgorithm.HS256)
-                .keyID(UUID.randomUUID().toString()) // <-- this is what was missing
+                .keyID(UUID.randomUUID().toString())
                 .build();
         JWKSource<SecurityContext> jwks = new ImmutableJWKSet<>(new JWKSet(jwk));
         return new NimbusJwtEncoder(jwks);
-
-
     }
 }
