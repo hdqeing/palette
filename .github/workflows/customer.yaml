@@ -23,6 +23,8 @@ jobs:
         run: npm ci
       
       - name: Build app
+        env:
+          VITE_API_URL: https://api.palletly.de
         run: npm run build
 
       - name: Deploy to Azure Static Web Apps
