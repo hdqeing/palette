@@ -1,7 +1,7 @@
-import { Badge, Button, Col, FloatingLabel, Form, Image, Modal, Row, Table, Toast, ToastContainer } from "react-bootstrap";
+import { Badge, Button, Col, Container, FloatingLabel, Form, Image, Modal, Row, Stack, Tab, Table, Toast, ToastContainer } from "react-bootstrap";
 import type { Route } from "../+types/root";
 import type { QueryDetail, QueryPalletItem, QuerySeller } from "../types";
-import { Cancel, CheckCircle } from "@mui/icons-material";
+import { Cancel, CheckCircle, ReceiptLong } from "@mui/icons-material";
 import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import { useFetcher } from "react-router";
@@ -42,9 +42,12 @@ export default function QueryDetailPage({ loaderData }: Route.ComponentProps) {
 
   const [showModalAcceptQuote, setShowModalAcceptQuote] = useState(false);
   const [showModalRejectQuote, setShowModalRejectQuote] = useState(false);
+  const [showModalCreateOrder, setShowModalCreateOrder] = useState(false);
   const [showToastAccepted, setShowToastAccepted] = useState(false);
   const [showToastRejected, setShowToastRejected] = useState(false);
   const [selectedSellerId, setSelectedSellerId] = useState(0);
+  const [currentTab, setCurrentTab] = useState("confirm");
+  const [orderId, setOrderId] = useState(0);
 
 const deadline = query.deadline?.split("T")[0] ?? "";
   const isSubmitting = fetcher.state === "submitting";
@@ -71,6 +74,32 @@ const deadline = query.deadline?.split("T")[0] ?? "";
     );
   };
 
+  const handleCreateOrder = async (queryId: number) => {
+    try {
+      const response = await fetch(`${apiUrl}/v1/buyer/orders`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          queryId: queryId
+        })
+      });
+
+      if (response.ok) {
+        setCurrentTab("success")
+        const data = await response.json();
+        setOrderId(data.id);
+      } else {
+        setCurrentTab("fail")
+      }
+
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
   return (
     <>
       <div style={{ backgroundColor: "burlywood" }} className="d-flex justify-content-center vw-100">
@@ -96,6 +125,11 @@ const deadline = query.deadline?.split("T")[0] ?? "";
             </Col>
           </Row>
         </Form>
+        
+        <Container className="w-75 p-0 d-flex align-items-center gap-1" fluid>
+          <span>Quote from one seller has been accepted. You can </span><Button variant="link" className="p-0" onClick={() => setShowModalCreateOrder(true)}>Create an Order</Button> <span>for this request to streamline procurement.</span>
+        </Container>
+
 
         <Table className="w-75" bordered>
           <thead>
@@ -163,7 +197,6 @@ const deadline = query.deadline?.split("T")[0] ?? "";
           </tbody>
         </Table>
 
-        {/* Reject Modal */}
         <Modal show={showModalRejectQuote} centered size="sm">
           <Modal.Header className="justify-content-center">
             <Cancel className="me-1" color="error" />
@@ -178,7 +211,6 @@ const deadline = query.deadline?.split("T")[0] ?? "";
           </Modal.Footer>
         </Modal>
 
-        {/* Accept Modal */}
         <Modal show={showModalAcceptQuote} centered size="sm">
           <Modal.Header className="justify-content-center">
             <CheckCircle className="me-1" color="success" />
@@ -192,6 +224,62 @@ const deadline = query.deadline?.split("T")[0] ?? "";
             </Button>
           </Modal.Footer>
         </Modal>
+
+        <Modal show={showModalCreateOrder} centered>
+          <Modal.Header className="justify-content-center">
+            <ReceiptLong className="me-1" color="success" />
+            <Modal.Title>{t("create_order")}</Modal.Title>
+          </Modal.Header>
+
+          <Modal.Body className="text-center">
+            <Tab.Container activeKey={currentTab}>
+              <Tab.Content>
+                <Tab.Pane eventKey="confirm">
+                  <div>
+                    <p>{t("msg_create_order")}</p>
+                  </div>
+                </Tab.Pane>
+
+                <Tab.Pane eventKey="fail">
+                  <div>
+                    <p>{t("msg_create_order_failed")}</p>
+                  </div>
+                </Tab.Pane>
+
+                <Tab.Pane eventKey="success">
+                  <div>
+                    <p>{t("msg_create_order_succeeded")}</p>
+                  </div>
+                </Tab.Pane>
+              </Tab.Content>
+            </Tab.Container>
+          </Modal.Body>
+
+          <Modal.Footer>
+            {
+              currentTab === "confirm" ? (
+                <>
+                  <Button className="w-100" variant="outline-danger" onClick={() => setShowModalCreateOrder(false)}>{t("cancel")}</Button>
+                  <Button className="w-100" variant="success" disabled={isSubmitting} onClick={() => handleCreateOrder(query.id)}>
+                    {isSubmitting ? t("loading") : t("create_order")}
+                  </Button>
+                </>
+              ) : currentTab === "success" ? (
+                <>
+                  <Button className="w-100" variant="outline-danger" onClick={() => setShowModalCreateOrder(false)}>{t("cancel")}</Button>
+                  <Button className="w-100" variant="success" disabled={isSubmitting} href={`/order/${orderId}`}>
+                    {isSubmitting ? t("loading") : t("check_details")}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button className="w-100" variant="outline-danger" onClick={() => setShowModalCreateOrder(false)}>{t("cancel")}</Button>
+                </>
+              )
+            }
+          </Modal.Footer>
+        </Modal>
+
 
         <ToastContainer position="middle-center">
           <Toast delay={3000} autohide bg="success" show={showToastAccepted} onClose={() => setShowToastAccepted(false)}>

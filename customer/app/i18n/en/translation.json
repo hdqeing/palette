@@ -89,6 +89,22 @@
   "ms": "Ms.",
   "english": "English",
   "german": "Deutsch",
-  "russian": "Русский"
+  "russian": "Русский",
+  "create_order": "Create Order",
+  "msg_create_order": "After creating order, you will able to generate procurement contract, follow order status, and find transportation.",
+  "msg_create_order_succeeded": "An order has been created successfully!",
+  "msg_create_order_failed": "We cannot create order for you now, please try again later!",
+  "error_name_required": "Please enter a name.",
+"error_description_required": "Please enter a description.",
+"error_generic": "Something went wrong. Please try again.",
+"error_network": "Network error. Please check your connection.",
+"custom_pallet_created": "Your custom pallet has been submitted!",
+"upload_file_optional": "Attach a file (optional)",
+"upload_file_hint": "Accepted: images, PDF — max 10 MB",
+"description": "Description",
+"submitting": "Submitting…",
+"submit": "Submit",
+"close": "Close"
+
 
 }

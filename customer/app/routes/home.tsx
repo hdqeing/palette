@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import type {CartEntity, GroupedPallet, Palette, PaletteSort, Pallet, PalletSort, StockSummary} from "~/types";
-import {Col, Row, Image, Button, Modal, FloatingLabel, Form, Breadcrumb, Accordion, ButtonGroup, Badge} from "react-bootstrap";
+import {Col, Row, Image, Button, Modal, FloatingLabel, Form, Breadcrumb, Accordion, ButtonGroup, Badge, Spinner} from "react-bootstrap";
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
-import { Euro, Group, Help, LocalShipping, Sell } from "@mui/icons-material";
+import { AttachFile, CheckCircleOutlined, Euro, Group, Help, LocalShipping, Sell } from "@mui/icons-material";
 import { useAppContext } from "~/layouts/layout";
 import { useTranslation } from "react-i18next";
+import { Fade } from "@mui/material";
 
 export default function Home() {
 
@@ -28,6 +29,57 @@ export default function Home() {
   const lengthOptions = [...new Set(myPallets.map((p) => p.length))].sort((a, b) => a - b);
   const widthOptions = [...new Set(myPallets.map((p) => p.width))].sort((a, b) => a - b);
   const heightOptions = [...new Set(myPallets.map((p) => p.height))].sort((a, b) => a - b);
+
+// ─── Custom pallet modal ──────────────────────────────────────────────────
+const [showCustomModal, setShowCustomModal] = useState(false);
+const [customName, setCustomName] = useState("");
+const [customDescription, setCustomDescription] = useState("");
+const [customFile, setCustomFile] = useState<File | null>(null);
+const [customSubmitting, setCustomSubmitting] = useState(false);
+const [customError, setCustomError] = useState<string | null>(null);
+const [customSuccess, setCustomSuccess] = useState(false);
+
+const resetCustomModal = () => {
+  setCustomName("");
+  setCustomDescription("");
+  setCustomFile(null);
+  setCustomError(null);
+  setCustomSuccess(false);
+  setCustomSubmitting(false);
+};
+
+const handleCreateCustomPallet = async () => {
+  if (!customName.trim()) { setCustomError(t("error_name_required")); return; }
+  if (!customDescription.trim()) { setCustomError(t("error_description_required")); return; }
+
+  setCustomSubmitting(true);
+  setCustomError(null);
+
+  const form = new FormData();
+  form.append("name", customName.trim());
+  form.append("description", customDescription.trim());
+  if (customFile) form.append("file", customFile);
+
+  try {
+    const res = await fetch(`${apiUrl}/v1/pallets/custom`, {
+      method: "POST",
+      credentials: "include",
+      body: form,
+    });
+
+    if (res.ok) {
+      setCustomSuccess(true);
+      getMyPallets();
+    } else {
+      const text = await res.text();
+      setCustomError(text || t("error_generic"));
+    }
+  } catch {
+    setCustomError(t("error_network"));
+  } finally {
+    setCustomSubmitting(false);
+  }
+};
 
   const addPaletteToCart = (p: Pallet, n: number) => {
     setPaletteInCart([...paletteInCart, {pallet: p, quantity: n}]);
@@ -191,9 +243,20 @@ export default function Home() {
 
       <main className="d-flex flex-column align-items-center">
         <Row className="w-75">
-          <Col className="p-0 my-4"><h3>{t("slogan")}</h3></Col>
+          <Col className="p-0 my-4">
+          <Fade in={true} timeout={1000}> 
+            <h3>{t("slogan")}</h3>
+          </Fade>
+          </Col>
           <Col className="p-0 my-4 d-flex justify-content-end">
-            <Button variant="warning" className="d-flex gap-1"><Help></Help><p className="m-0">{t("create_own")}</p></Button>
+<Button
+  variant="warning"
+  className="d-flex gap-1"
+  onClick={() => { resetCustomModal(); setShowCustomModal(true); }}
+>
+  <Help /><p className="m-0">{t("create_own")}</p>
+</Button>
+
           </Col>
         </Row>
 
@@ -394,6 +457,119 @@ export default function Home() {
           </Modal.Footer>
 
         </Modal>
+
+<Modal
+  show={showCustomModal}
+  onHide={() => { if (!customSubmitting) { setShowCustomModal(false); resetCustomModal(); } }}
+  centered
+  size="lg"
+>
+  <Modal.Header closeButton={!customSubmitting}>
+    <Modal.Title className="d-flex align-items-center gap-2">
+      <Help color="warning" />
+      {t("create_own")}
+    </Modal.Title>
+  </Modal.Header>
+
+  <Modal.Body>
+    {customSuccess ? (
+      <div className="text-center py-3">
+        <CheckCircleOutlined style={{ fontSize: 48, color: "green" }} />
+        <p className="mt-3 fw-semibold">{t("custom_pallet_created")}</p>
+        <Button
+          variant="success"
+          className="w-100 mt-2"
+          onClick={() => { setShowCustomModal(false); resetCustomModal(); }}
+        >
+          {t("close")}
+        </Button>
+      </div>
+    ) : (
+      <Form>
+        {customError && (
+          <div className="alert alert-danger py-2 small">{customError}</div>
+        )}
+
+        <FloatingLabel controlId="customName" label={t("name")} className="mb-3">
+          <Form.Control
+            type="text"
+            placeholder={t("name")}
+            value={customName}
+            onChange={(e) => setCustomName(e.target.value)}
+            disabled={customSubmitting}
+          />
+        </FloatingLabel>
+
+        <FloatingLabel controlId="customDescription" label={t("description")} className="mb-3">
+          <Form.Control
+            as="textarea"
+            placeholder={t("description")}
+            style={{ height: "120px" }}
+            value={customDescription}
+            onChange={(e) => setCustomDescription(e.target.value)}
+            disabled={customSubmitting}
+          />
+        </FloatingLabel>
+
+        <Form.Group controlId="customFile" className="mb-2">
+          <Form.Label className="small text-muted">
+            {t("upload_file_optional")}
+          </Form.Label>
+          <Form.Control
+            type="file"
+            accept="image/*,application/pdf"
+            onChange={(e) => {
+              const target = e.target as HTMLInputElement;
+              setCustomFile(target.files?.[0] ?? null);
+            }}
+            disabled={customSubmitting}
+          />
+          <Form.Text className="text-muted">
+            {t("upload_file_hint")}
+          </Form.Text>
+        </Form.Group>
+
+        {customFile && (
+          <div className="d-flex align-items-center gap-2 small text-muted mt-1">
+            <AttachFile fontSize="small" />
+            {customFile.name}
+            <Button
+              variant="link"
+              size="sm"
+              className="p-0 text-danger"
+              onClick={() => setCustomFile(null)}
+            >
+              {t("remove")}
+            </Button>
+          </div>
+        )}
+      </Form>
+    )}
+  </Modal.Body>
+
+  {!customSuccess && (
+    <Modal.Footer>
+      <Button
+        variant="outline-danger"
+        onClick={() => { setShowCustomModal(false); resetCustomModal(); }}
+        disabled={customSubmitting}
+      >
+        {t("cancel")}
+      </Button>
+      <Button
+        variant="warning"
+        onClick={handleCreateCustomPallet}
+        disabled={customSubmitting}
+      >
+        {customSubmitting ? (
+          <><Spinner animation="border" size="sm" className="me-1" />{t("submitting")}</>
+        ) : (
+          t("submit")
+        )}
+      </Button>
+    </Modal.Footer>
+  )}
+</Modal>
       </main>
     </>
   );
