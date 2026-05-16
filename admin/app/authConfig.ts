@@ -4,8 +4,8 @@ export const msalConfig = {
     auth: {
         clientId: '02d84ec3-f7fd-46d0-994a-9f2f1f81fdcf',
         authority: 'https://login.microsoftonline.com/d13e89a2-46ab-48c5-ba97-7fdad1035704',
-        redirectUri: 'http://localhost:5173',
-        postLogoutRedirectUri: 'http://localhost:5173',
+        redirectUri: 'https://admin.palletly.de',
+        postLogoutRedirectUri: 'https://admin.palletly.de',
         navigateToLoginRequestUrl: false,
     },
     cache: {

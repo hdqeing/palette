@@ -8,6 +8,8 @@ export default [
         route("query", "routes/query-overview.tsx"),
         route("query/:queryId", "routes/query-detail.tsx"),
         route("profile", "routes/profile.tsx"),
-        route("pallet/:palletId/stock", "routes/pallet-stock.tsx")
+        route("pallet/:palletId/stock", "routes/pallet-stock.tsx"),
+        route("order", "routes/order.tsx"),
+        route("order/:id", "routes/order-detail.tsx"),
     ])
 ] satisfies RouteConfig;
