@@ -1,4 +1,4 @@
-name: Customer UI
+name: Admin UI
 
 on:
   workflow_dispatch:
