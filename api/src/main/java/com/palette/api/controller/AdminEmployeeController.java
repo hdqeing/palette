@@ -1,6 +1,8 @@
 package com.palette.api.controller;
 
+import com.palette.api.dto.CompanyRefDto;
 import com.palette.api.dto.CreateEmployeeRequest;
+import com.palette.api.dto.EmployeeDto;
 import com.palette.api.dto.UpdateEmployeeRequest;
 import com.palette.api.exception.EmployeeNotFoundException;
 import com.palette.api.model.Employee;
@@ -29,8 +31,12 @@ public class AdminEmployeeController {
     private EmployeeService employeeService;
 
     @GetMapping
-    public ResponseEntity<List<Employee>> getAllEmployees() {
-        return ResponseEntity.ok(employeeRepository.findAll());
+    public ResponseEntity<List<EmployeeDto>> getAllEmployees() {
+        List<EmployeeDto> dtos = employeeRepository.findAll()
+                .stream()
+                .map(this::toDto)
+                .toList();
+        return ResponseEntity.ok(dtos);
     }
 
     @PostMapping
@@ -38,14 +44,12 @@ public class AdminEmployeeController {
         if (request.getEmail() == null || request.getEmail().isBlank()) {
             return ResponseEntity.badRequest().body("Email is required");
         }
-
         if (employeeRepository.findByEmail(request.getEmail()).isPresent()) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body("Employee with this email already exists");
         }
-
         Employee saved = employeeService.createEmployee(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+        return ResponseEntity.status(HttpStatus.CREATED).body(toDto(saved));
     }
 
     @PutMapping("/{id}")
@@ -55,14 +59,31 @@ public class AdminEmployeeController {
     ) {
         Employee target = employeeRepository.findById(id)
                 .orElseThrow(() -> new EmployeeNotFoundException("id=" + id));
-
         Employee updated = employeeService.updateEmployee(target, request, true);
-        return ResponseEntity.ok(updated);
+        return ResponseEntity.ok(toDto(updated));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteEmployee(@PathVariable Long id) {
         employeeService.deleteEmployee(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // ─── Mapper ───────────────────────────────────────────────────────────────
+
+    private EmployeeDto toDto(Employee e) {
+        CompanyRefDto companyRef = e.getCompany() == null ? null
+                : new CompanyRefDto(e.getCompany().getId(), e.getCompany().getTitle());
+        return new EmployeeDto(
+                e.getId(),
+                e.getEmail(),
+                e.getFirstName(),
+                e.getLastName(),
+                e.getTelephone(),
+                e.getUsername(),
+                e.getSalutation(),
+                e.getPreferredLanguage(),
+                companyRef
+        );
     }
 }

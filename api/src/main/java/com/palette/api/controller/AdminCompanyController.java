@@ -2,6 +2,7 @@ package com.palette.api.controller;
 
 import com.palette.api.dto.CreateCompanyRequest;
 import com.palette.api.dto.UpdateCompanyRequest;
+import com.palette.api.dto.VerifyCompanyRequest;
 import com.palette.api.exception.CompanyNotFoundException;
 import com.palette.api.model.Company;
 import com.palette.api.repository.CompanyRepository;
@@ -54,6 +55,20 @@ public class AdminCompanyController {
         Company updated = companyService.updateCompany(target, request);
         return ResponseEntity.ok(updated);
     }
+
+    @PatchMapping("/{id}/verify")
+    public ResponseEntity<Company> verifyCompany(
+            @PathVariable Long id,
+            @RequestBody VerifyCompanyRequest request
+    ) {
+        return companyRepository.findById(id)
+                .map(company -> {
+                    company.setVerified(request.isVerified());
+                    return ResponseEntity.ok(companyRepository.save(company));
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteCompany(@PathVariable Long id) {

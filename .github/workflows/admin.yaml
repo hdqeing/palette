@@ -25,6 +25,9 @@ jobs:
       - name: Build app
         env:
           VITE_API_URL: https://api.palletly.de
+          VITE_AZURE_CLIENT_ID: 02d84ec3-f7fd-46d0-994a-9f2f1f81fdcf
+          VITE_AZURE_TENANT_ID: d13e89a2-46ab-48c5-ba97-7fdad1035704
+          VITE_AZURE_REDIRECT_URI: https://admin.palletly.de
         run: npm run build
 
       - name: Deploy to Azure Static Web Apps
