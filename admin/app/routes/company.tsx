@@ -218,6 +218,25 @@ export default function CompanyPage() {
         setNewCompany(EMPTY_NEW_COMPANY);
     };
 
+const handleToggleVerify = async () => {
+    if (!selectedCompany) return;
+    try {
+        const response = await authFetch(`${apiUrl}/v1/admin/companies/${selectedCompany.id}/verify`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ verified: !companyVerified }),
+        });
+        if (response.ok) {
+            setCompanyVerified((prev) => !prev);
+            fetchCompanies(); // keep table in sync
+        } else {
+            setShowAlertEditCompanyFail(true);
+        }
+    } catch {
+        setShowAlertEditCompanyFail(true);
+    }
+};
+
     // ─── Company type helpers ─────────────────────────────────────────────────
 
     const getCompanyType = (isSeller: boolean, isShipping: boolean) => {
@@ -559,7 +578,11 @@ export default function CompanyPage() {
                                                 onChange={(e) => setEditCompany((prev) => ({ ...prev, vat: e.target.value }))}
                                             />
                                         </FloatingLabel>
-                                        <Button variant="outline-secondary" title={companyVerified ? "Verified" : "Not verified"}>
+                                        <Button
+                                            variant="outline-secondary"
+                                            title={companyVerified ? "Verified" : "Not verified"}
+                                            onClick={handleToggleVerify}
+                                        >
                                             <VerifiedIcon fontSize="small" color={companyVerified ? "success" : "disabled"} />
                                         </Button>
                                     </InputGroup>

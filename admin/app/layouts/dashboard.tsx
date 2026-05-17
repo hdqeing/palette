@@ -6,7 +6,7 @@ import InventoryIcon from '@mui/icons-material/Inventory';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import MenuIcon from '@mui/icons-material/Menu';
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
-import { FormGroup, Modal, Form, Button, Col, Row, Nav, FloatingLabel, Alert, Tabs, Tab, Image, Stack } from "react-bootstrap";
+import { FormGroup, Modal, Form, Button, Col, Row, Nav, FloatingLabel, Alert, Tabs, Tab, Image, Stack, Container } from "react-bootstrap";
 import { createContext, useContext, useEffect, useState } from "react";
 import { AuthContext } from "~/context";
 import type { Route } from "../+types/root";
@@ -16,14 +16,9 @@ import { RequestQuote } from "@mui/icons-material";
 
 
 export default function DashboardLayout() {
-    const { instance } = useMsal();
 
+    const { instance } = useMsal();
     const apiUrl=import.meta.env.VITE_API_URL;
-    const [showLoginModal, setShowLoginModal] = useState(false);
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [showAlertPasswordIncorrect, setShowAlertPasswordIncorrect] = useState(false);
-    const [activeKey, setActiveKey] = useState('form');
     const [authenticated, setAuthenticated] = useState(false);
 
 
@@ -33,29 +28,11 @@ export default function DashboardLayout() {
 
     const handleLogout = async () => {
         instance.logoutRedirect().catch(console.error);
-        
     };
-
-    const getUser = async () => {
-        const response = await fetch(`${apiUrl}/v1/auth/profile`, {
-        credentials: 'include'
-        });
-
-        if (response.ok) {
-        setAuthenticated(true);
-        }
-
-    }
-
-    useEffect(()=>{
-        getUser()
-    }, [])
-
-
 
     return (
         <>
-            <Row className="vh-100">
+            <Container className="vh-100 d-flex p-0" fluid>
                 <Col className="bg-warning p-4 d-flex flex-column align-items-center" xxl={2}>
                     <Row className="shadow bg-body-tertiary rounded w-75 px-2 py-4 mb-4">
                         <Col xs='4'>
@@ -114,7 +91,7 @@ export default function DashboardLayout() {
 
                 <Col xxl={10}>
 
-                    <Row className="p-4">
+                    <Container fluid className="p-4 d-flex justify-content-end">
                         <AuthenticatedTemplate>
                             <Stack direction="horizontal" className="justify-content-end" gap={4}>
                                 <h3>Hello, Admin!</h3>
@@ -124,15 +101,14 @@ export default function DashboardLayout() {
                         <UnauthenticatedTemplate>
                             <Button variant="outline-success" onClick={() => handleLogin()}>Login</Button>
                         </UnauthenticatedTemplate>
-                    </Row>
+                    </Container>
 
                     <Row className="p-4">
                         <Outlet context={authenticated}/>
                     </Row>
 
                 </Col>
-            </Row>
-
+            </Container>
         </>
     );
 }

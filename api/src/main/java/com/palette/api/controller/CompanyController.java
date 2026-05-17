@@ -2,6 +2,7 @@ package com.palette.api.controller;
 
 import com.palette.api.dto.CreateCompanyRequest;
 import com.palette.api.dto.UpdateCompanyRequest;
+import com.palette.api.dto.VerifyCompanyRequest;
 import com.palette.api.model.Company;
 import com.palette.api.model.Stock;
 import com.palette.api.repository.CompanyRepository;
@@ -69,6 +70,7 @@ public class CompanyController {
         Company savedCompany = companyRepository.save(company);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedCompany);
     }
+
 
     @PutMapping("/{id}")
     public ResponseEntity<Company> updateCompany(
