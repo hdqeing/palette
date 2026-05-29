@@ -138,52 +138,45 @@ export default function Seller() {
         </div>
 
         <div className="w-75">
-          <Form>
+          <Row>
+          <Form className="p-0">
+            <ListGroup>
             {allSellers.map((seller: Company) => (
-              <Row
-                key={seller.id}
-                className="shadow p-3 mb-3 bg-success-subtle rounded"
-              >
-                <Col xxl="2" className="d-flex align-items-center">
-                  <Form.Check
-                    type="checkbox"
-                    checked={selectedSellers.some((s) => s.id === seller.id)}
-                    disabled={onlyVerified && !seller.verified}
-                    onChange={(e) => {
-                      const checked = e.target.checked;
+              <ListGroup.Item>
+                <Row>
+                  <Col>
+                    <Form.Check
+                      type="checkbox"
+                      checked={selectedSellers.some((s) => s.id === seller.id)}
+                      disabled={onlyVerified && !seller.verified}
+                      onChange={(e) => {
+                          const checked = e.target.checked;
+                          if (checked) {
+                              setSelectedSellers((prev) =>
+                                  prev.some((s) => s.id === seller.id) ? prev : [...prev, seller]
+                              );
+                          } else {
+                              setSelectedSellers((prev) => prev.filter((s) => s.id !== seller.id));
+                          }
+                      }}
+                      label={<a href={`/seller/${seller.id}`}>{seller.title}</a>}
+                    />
+                  </Col>
 
-                      if (checked) {
-                        setSelectedSellers((prev) =>
-                          prev.some((s) => s.id === seller.id)
-                            ? prev
-                            : [...prev, seller],
-                        );
-                      } else {
-                        setSelectedSellers((prev) =>
-                          prev.filter((s) => s.id !== seller.id),
-                        );
-                      }
-                    }}
-                  />
-                </Col>
+                  <Col>
+                  {seller.street} {seller.houseNumber}, {seller.postalCode} {seller.city}
+                  </Col>
 
-                <Col xxl="5" className="d-flex align-items-center gap-1">
-                  <Verified
-                    color={seller.verified ? "success" : "action"}
-                  ></Verified>
-                  <a href={`/seller/${seller.id}`}><h3 className="m-0">{seller.title}</h3></a>
-                </Col>
-
-                <Col xxl="5" className="d-flex">
-                  <h5 className="m-0">
-                    {seller.street} {seller.houseNumber}
-                    <br />
-                    {seller.postalCode}, {seller.city}
-                  </h5>
-                </Col>
-              </Row>
+                  <Col>
+                  {seller.verified? <Badge>{t("vat_verified")}</Badge> : <></>}
+                  </Col>
+                </Row>
+              </ListGroup.Item>
             ))}
+            </ListGroup>
           </Form>
+
+          </Row>
         </div>
 
         <Modal show={showRequestQuoteConfirm} size="lg" centered>

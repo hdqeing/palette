@@ -30,6 +30,11 @@ public class Pallet {
     private double weight;
     private String quality;
     private String url;
+    private String description;
+    private boolean custom;
+    @ManyToOne
+    @JoinColumn(name = "owner_id")
+    private Company owner;
 
     public Pallet(PalletSort palletSort, int boards, int nails, int blocks,
                   int length, int width, int height, String name,

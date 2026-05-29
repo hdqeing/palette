@@ -1,4 +1,4 @@
-import { Navbar, Button, Offcanvas, Image, Col, Dropdown, DropdownButton, Modal, Form, FloatingLabel, Container, Alert, Toast, ToastContainer, Row, Tabs, Tab, InputGroup, Badge} from "react-bootstrap";
+import { Navbar, Button, Offcanvas, Image, Col, Dropdown, DropdownButton, Modal, Form, FloatingLabel, Container, Alert, Toast, ToastContainer, Row, Tabs, Tab, InputGroup, Badge, Stack} from "react-bootstrap";
 import PersonIcon from '@mui/icons-material/Person';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import CheckIcon from '@mui/icons-material/Check';
@@ -7,7 +7,7 @@ import WarningIcon from '@mui/icons-material/Warning';
 import React, { useEffect, useState } from "react";
 import { ListGroup } from 'react-bootstrap';
 import { Outlet, useNavigate, useOutletContext } from 'react-router'; // If using React Router
-import { CheckCircle, Email, Group, Login, Logout, PersonAdd, RemoveCircle, VerifiedUser } from "@mui/icons-material";
+import { CheckCircle, Email, Group, Login, Logout, LockReset, PersonAdd, RemoveCircle, VerifiedUser } from "@mui/icons-material";
 import type {CartEntity, CreateEmployeeForm, Employee} from "~/types";
 import { useTranslation } from "react-i18next";
 
@@ -28,7 +28,6 @@ export default function Layout() {
   const { t, i18n } = useTranslation();
 
   const [paletteInCart, setPaletteInCart] = useState<CartEntity[]>([]);
-  // Add this state alongside your other states
   const [registeredEmployeeId, setRegisteredEmployeeId] = useState<number | null>(null);
   const [showCart, setShowCart] = useState(false);
   const [showAlertVerificationEmailSent, setShowAlertVerificationEmailSent] = useState(false);
@@ -55,7 +54,9 @@ export default function Layout() {
       companyId: null
   });
 
-
+  // "register" | "reset" — controls which flow the shared modal runs
+  const [authMode, setAuthMode] = useState<"register" | "reset">("register");
+  const [showAlertResetSuccess, setShowAlertResetSuccess] = useState(false);
 
   //States for Login
   const [emailLogin, setEmailLogin] = useState('');
@@ -75,8 +76,47 @@ export default function Layout() {
   const [showToastLogoutConfirm, setShowToastLogoutConfirm] = useState(false);
   const [myProfile, setMyProfile] = useState<Employee>();
 
+  // ── helpers ──────────────────────────────────────────────────────────────
 
+  /** Reset all register/reset modal state to a clean slate */
+  const resetModalState = () => {
+      setCurrentTab("email");
+      setEmailRegister("");
+      setVerificationCodeRegister("");
+      setPasswordRegister("");
+      setPasswordConfirmRegister("");
+      setEmailValid(false);
+      setShowAlertVerificationEmailSent(false);
+      setShowAlertVerificationFailed(false);
+      setShowAlertPasswordInconsistent(false);
+      setShowAlertResetSuccess(false);
+      setRegisteredEmployeeId(null);
+      setNewEmployee({
+          email: "", username: "", firstName: "", lastName: "",
+          preferredLanguage: "", telephone: "", salutation: "", companyId: null
+      });
+  };
 
+  const openRegisterModal = () => {
+      resetModalState();
+      setAuthMode("register");
+      setShowLoginModal(false);
+      setShowRegisterModal(true);
+  };
+
+  const openResetModal = () => {
+      resetModalState();
+      setAuthMode("reset");
+      setShowLoginModal(false);
+      setShowRegisterModal(true);
+  };
+
+  const closeRegisterModal = () => {
+      setShowRegisterModal(false);
+      resetModalState();
+  };
+
+  // ── handlers ─────────────────────────────────────────────────────────────
 
   const handleLanguageChange = (language: string) => {
       setAlternativeLanguages((prev) => [
@@ -98,27 +138,15 @@ export default function Layout() {
       }
   };
 
-  const handleShowCart = () => {
-  setShowCart(true);
-  }
-
-  const handleHideCart = () => {
-  setShowCart(false);
-  }
-
-  const handleHideNotification = () => {
-  setShowNotification(false);
-  }
+  const handleShowCart = () => setShowCart(true);
+  const handleHideCart = () => setShowCart(false);
+  const handleHideNotification = () => setShowNotification(false);
 
   const handleLogout = async () => {
-
       try {
           const response = await fetch(`${apiUrl}/v1/auth/logout`, {
               method: "POST",
-              headers: {
-                  "Accept": "*/*",
-                  "Content-Type": "application/json"
-              },
+              headers: { "Accept": "*/*", "Content-Type": "application/json" },
               credentials: "include",
           });
 
@@ -129,27 +157,18 @@ export default function Layout() {
           } else {
               console.log(response.json)
           }
-
       } catch (error) {
           console.log(error)
       }
-      
   };
 
   const handleLogin = async () => {
-
       try{
           const response = await fetch(`${apiUrl}/v1/auth/login`, {
               method: 'POST',
-              headers: {
-                  "Accept": "*/*",
-                  "Content-Type": "application/json"
-              },
+              headers: { "Accept": "*/*", "Content-Type": "application/json" },
               credentials: "include",
-              body: JSON.stringify({
-                  email: emailLogin,
-                  password: passwordLogin
-              })
+              body: JSON.stringify({ email: emailLogin, password: passwordLogin })
           });
 
           if (response.status === 200){
@@ -159,53 +178,68 @@ export default function Layout() {
           } else {
               setShowAlertPasswordIncorrect(true);
           };
-
       } catch (error) {
           console.log(error);
       }
-
   };
 
   const handleHideModalLogin = () => {
-  setEmailLogin("");
-  setPasswordLogin("");
-  setShowLoginModal(false);
-  }
+      setEmailLogin("");
+      setPasswordLogin("");
+      setShowLoginModal(false);
+  };
 
   const handleEmailVerification = async () => {
-  try {
-    const response = await fetch(`${apiUrl}/v1/employee`, {
-      method: 'POST',
-      headers: {
-        "Accept": "*/*",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(newEmployee),
-    });
+      try {
+          const response = await fetch(`${apiUrl}/v1/employee`, {
+              method: 'POST',
+              headers: { "Accept": "*/*", "Content-Type": "application/json" },
+              body: JSON.stringify(newEmployee),
+          });
 
-    if (response.status === 201) {
-      setShowAlertVerificationEmailSent(true);
-    } else if (response.status === 409) {
-      setEmailValid(false);
-      setIsEmailRegistered(true);
-    } else {
-      console.log(response.json())
-    }
+          if (response.status === 201) {
+              setShowAlertVerificationEmailSent(true);
+          } else if (response.status === 409) {
+              setEmailValid(false);
+              setIsEmailRegistered(true);
+          } else {
+              console.log(response.json())
+          }
+      } catch (error) {
+          console.log(error);
+      }
+  };
 
-  } catch (error) {
-    console.log(error);
-  } 
-  }
+  /**
+   * Sends a verification code to the email for password reset.
+   * Uses a dedicated endpoint so it works even for existing accounts
+   * without creating a new employee record.
+   */
+  const handleResetEmailVerification = async () => {
+      try {
+          const response = await fetch(`${apiUrl}/v1/auth/send-reset-code`, {
+              method: 'POST',
+              headers: { "Accept": "*/*", "Content-Type": "application/json" },
+              body: JSON.stringify({ email: emailRegister }),
+          });
+
+          if (response.ok) {
+              setShowAlertVerificationEmailSent(true);
+          } else {
+              setShowAlertVerificationFailed(true);
+          }
+      } catch (error) {
+          console.log(error);
+      }
+  };
 
   const handleRegisterNextStep = async () => {
+      // ── EMAIL TAB ────────────────────────────────────────────────────────
       if (currentTab === "email") {
           try {
               const response = await fetch(`${apiUrl}/v1/auth/verify`, {
                   method: 'POST',
-                  headers: {
-                      "Accept": "*/*",
-                      "Content-Type": "application/json",
-                  },
+                  headers: { "Accept": "*/*", "Content-Type": "application/json" },
                   body: JSON.stringify({
                       email: emailRegister,
                       verificationCode: verificationCodeRegister
@@ -223,19 +257,43 @@ export default function Layout() {
               console.log(error);
           }
 
+      // ── PASSWORD TAB ─────────────────────────────────────────────────────
       } else if (currentTab === "password") {
           if (passwordRegister !== passwordConfirmRegister) {
               setShowAlertPasswordInconsistent(true);
               return;
           }
 
+          // ── RESET MODE ─────────────────────────────────────────────────
+          if (authMode === "reset") {
+              try {
+                  const response = await fetch(`${apiUrl}/v1/auth/reset-password`, {
+                      method: 'PATCH',
+                      headers: { "Accept": "*/*", "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                          email: emailRegister,
+                          verificationCode: verificationCodeRegister,
+                          newPassword: passwordRegister
+                      }),
+                  });
+
+                  if (response.ok) {
+                      closeRegisterModal();
+                      setShowLoginModal(true); // send them straight to login
+                  } else {
+                      setShowAlertPasswordInconsistent(true);
+                  }
+              } catch (error) {
+                  console.log(error);
+              }
+              return;
+          }
+
+          // ── REGISTER MODE ──────────────────────────────────────────────
           try {
               const response = await fetch(`${apiUrl}/v1/auth/register`, {
                   method: 'POST',
-                  headers: {
-                      "Accept": "*/*",
-                      "Content-Type": "application/json",
-                  },
+                  headers: { "Accept": "*/*", "Content-Type": "application/json" },
                   body: JSON.stringify({
                       email: emailRegister,
                       verificationCode: verificationCodeRegister,
@@ -245,7 +303,7 @@ export default function Layout() {
 
               if (response.ok) {
                   const employee = await response.json();
-                  setRegisteredEmployeeId(employee.id); // save for profile step
+                  setRegisteredEmployeeId(employee.id);
                   setShowAlertPasswordInconsistent(false);
                   setCurrentTab("profile");
               } else {
@@ -255,17 +313,15 @@ export default function Layout() {
               console.log(error);
           }
 
+      // ── PROFILE TAB (register only) ──────────────────────────────────────
       } else if (currentTab === "profile") {
           if (!registeredEmployeeId) return;
 
           try {
               const response = await fetch(`${apiUrl}/v1/employee/${registeredEmployeeId}`, {
                   method: 'PUT',
-                  headers: {
-                      "Accept": "*/*",
-                      "Content-Type": "application/json",
-                  },
-                  credentials: 'include', // sends the jwt-token cookie set during register
+                  headers: { "Accept": "*/*", "Content-Type": "application/json" },
+                  credentials: 'include',
                   body: JSON.stringify({
                       email: newEmployee.email,
                       username: newEmployee.username,
@@ -279,8 +335,7 @@ export default function Layout() {
               });
 
               if (response.ok) {
-                  setShowRegisterModal(false);
-                  // optionally redirect or show success toast
+                  closeRegisterModal();
               } else {
                   console.error("Failed to update profile:", await response.text());
               }
@@ -292,80 +347,68 @@ export default function Layout() {
 
   const getProfile = async () => {
       try {
-      const response = await fetch(`${apiUrl}/v1/auth/profile`, {
-      credentials: 'include'
-      });
-
-      if (response.ok) {
-      const data = await response.json();
-          setAuthenticated(true);
-          setMyProfile(data);
-      }
-
+          const response = await fetch(`${apiUrl}/v1/auth/profile`, { credentials: 'include' });
+          if (response.ok) {
+              const data = await response.json();
+              setAuthenticated(true);
+              setMyProfile(data);
+          }
       } catch (error) {
           console.log(error)
-
       }
-
   };
 
-  const getCart = async () => {
-      const response = await fetch(`${apiUrl}/v1/carts`, {
-          credentials: 'include'
-      });
+    const getCart = async () => {
+        const response = await fetch(`${apiUrl}/v1/carts`, { credentials: 'include' });
 
-      if (response.ok) {
-          const data = await response.json();
-          setPaletteInCart(data);
-      }
-
-  };
-
-
-  useEffect(()=>{
-      getProfile();
-      getCart();
-  }, [])
+        if (response.ok) {
+            const data = await response.json();
+            setPaletteInCart(data);
+        }
+    };
 
   const updateCart = async () => {
-  const payload = {
-  items: paletteInCart.map(item => ({
-  palletId: item.pallet?.id,
-  quantity: item.quantity
-  }))
-  };
-  try {
-  const response = await fetch(`${apiUrl}/v1/carts`, {
-    method: "PUT",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(payload)
-  });
+      const payload = {
+          items: paletteInCart.map(item => ({
+              palletId: item.pallet?.id,
+              quantity: item.quantity
+          }))
+      };
+      try {
+          const response = await fetch(`${apiUrl}/v1/carts`, {
+              method: "PUT",
+              credentials: "include",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload)
+          });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(errorText);
-  }
+          if (!response.ok) {
+              const errorText = await response.text();
+              throw new Error(errorText);
+          }
 
-  const data = await response.json();
-  console.log("Cart updated:", data);
-
-  } catch (error) {
-  console.error("Error updating cart:", error);
-  }
+          const data = await response.json();
+          console.log("Cart updated:", data);
+      } catch (error) {
+          console.error("Error updating cart:", error);
+      }
   };
 
   useEffect(() => {
-  if (paletteInCart.length === 0) return;
+      getProfile();
+      getCart();
+  }, []);
 
-  const timeout = setTimeout(() => {
-  updateCart();
-  }, 500);
-
-  return () => clearTimeout(timeout);
+  useEffect(() => {
+      if (paletteInCart.length === 0) return;
+      const timeout = setTimeout(() => { updateCart(); }, 500);
+      return () => clearTimeout(timeout);
   }, [paletteInCart]);
+
+  // ── derived helpers for the modal ─────────────────────────────────────────
+  const isReset = authMode === "reset";
+  const modalTitle   = isReset ? t("reset_password") : t("sign_up");
+  const nextBtnLabel = (currentTab === "password" && isReset) ? t("reset_password") : t("next");
 
   return (
     <div className="d-flex flex-column align-items-center">
@@ -380,128 +423,115 @@ export default function Layout() {
           </Col>
 
           <Col className="d-flex justify-content-end gap-3 align-items-center p-0">
-
             <DropdownButton title={selectedLanguage} variant="outline-success">
                 {alternativeLanguages.map((alternativeLanguage: string) => (
                     <Dropdown.Item key={alternativeLanguage} onClick={() => handleLanguageChange(alternativeLanguage)}>{alternativeLanguage}</Dropdown.Item>
                 ))}
             </DropdownButton>
 
-
-            <Button onClick={() => setShowNotification(true)}  variant="outline-success">
+            <Button onClick={() => setShowNotification(true)} variant="outline-success">
                 <NotificationsIcon></NotificationsIcon>
             </Button>
 
+            {authenticated ? (
+              <>
+                <Dropdown>
+                  <Dropdown.Toggle variant="outline-success" className="no-caret">
+                    <PersonIcon></PersonIcon>
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu>
+                    <Dropdown.Item href="/order">{t("orders")}</Dropdown.Item>
+                    <Dropdown.Item href="/query">{t("requests")}</Dropdown.Item>
+                    <Dropdown.Item href="/profile">{t("profile")}</Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown>
+                <Button variant="outline-danger" onClick={() => setShowModalLogoutConfirm(true)}>{t("sign_out")}</Button>
+              </>
+            ) : (
+              <>
+                <Button onClick={() => setShowLoginModal(true)} variant="success">{t("sign_in")}</Button>
+                <Button onClick={openRegisterModal} variant="outline-success">{t("sign_up")}</Button>                  
+              </>
+            )}
 
-
-                {
-                authenticated ? (
-                  <>
-                    <Dropdown>
-                      <Dropdown.Toggle variant="outline-success" className="no-caret">
-                      <PersonIcon></PersonIcon>
-                      </Dropdown.Toggle>
-
-                      <Dropdown.Menu>
-                        <Dropdown.Item href="/query">{t("requests")}</Dropdown.Item>
-                        <Dropdown.Item href="/profile">{t("profile")}</Dropdown.Item>
-                        <Dropdown.Item onClick={() => setShowModalLogoutConfirm(true)}>{t("settings")}</Dropdown.Item>
-                      </Dropdown.Menu>
-                    </Dropdown>
-
-                    <Button variant="outline-danger" onClick={() => setShowModalLogoutConfirm(true)}>{t("sign_out")}</Button>
-                  </>
-
-                ) : (
-                  <>
-                    <Button onClick={() => setShowLoginModal(true)} variant="success">{t("sign_in")}</Button>
-                    <Button onClick={() => setShowRegisterModal(true)} variant="outline-success">{t("sign_up")}</Button>                  
-                  </>
-                )
-                }
-
-
-            <Button onClick={handleShowCart}  variant="outline-success">
+            <Button onClick={handleShowCart} variant="outline-success">
                 <ShoppingCartIcon></ShoppingCartIcon>
             </Button>
-
-
           </Col>
         </Row>
       </Navbar>
 
-      <div style={{ minHeight: "80vh" }} >
+      <div style={{ minHeight: "80vh" }}>
           <Outlet context={[authenticated, setAuthenticated, paletteInCart, setPaletteInCart]}/>
       </div>
 
       <footer className="w-100 bg-warning-subtle" style={{ height: "10vh" }}>
           <ul className="nav justify-content-center border-bottom p-2">
-              <li className="nav-item">
-                  <a href="#" className="nav-link px-2 text-body-secondary">Impressum</a>
-              </li>
-
-              <li className="nav-item">
-                  <a href="#" className="nav-link px-2 text-body-secondary">Datenschutz</a>
-              </li>
-
-              <li className="nav-item">
-                  <a href="#" className="nav-link px-2 text-body-secondary">ADSp</a>
-              </li>
-
-              <li className="nav-item">
-                  <a href="#" className="nav-link px-2 text-body-secondary">Cookie-Einstellung</a>
-              </li>
-
-              <li className="nav-item">
-                  <a href="#" className="nav-link px-2 text-body-secondary">Sicherheit</a>
-              </li>
+              <li className="nav-item"><a href="#" className="nav-link px-2 text-body-secondary">Impressum</a></li>
+              <li className="nav-item"><a href="#" className="nav-link px-2 text-body-secondary">Datenschutz</a></li>
+              <li className="nav-item"><a href="#" className="nav-link px-2 text-body-secondary">ADSp</a></li>
+              <li className="nav-item"><a href="#" className="nav-link px-2 text-body-secondary">Cookie-Einstellung</a></li>
+              <li className="nav-item"><a href="#" className="nav-link px-2 text-body-secondary">Sicherheit</a></li>
           </ul>
-
           <div className="p-2">
               <p className="text-center text-body-secondary m-0">&copy; 2025 Palletly, Inc</p>
           </div>
       </footer>
 
-
+      {/* ── Notification Offcanvas ───────────────────────────────────────── */}
       <Offcanvas show={showNotification} placement='start' onHide={handleHideNotification}>
         <Offcanvas.Header closeButton>
           <Offcanvas.Title>Messages</Offcanvas.Title>
         </Offcanvas.Header>
-        <Offcanvas.Body>
-
-        </Offcanvas.Body>
+        <Offcanvas.Body></Offcanvas.Body>
       </Offcanvas>
 
-      <Offcanvas show={showCart} placement='end' onHide={handleHideCart}   style={{ width: "512px" }}>
+      {/* ── Cart Offcanvas ───────────────────────────────────────────────── */}
+      <Offcanvas show={showCart} placement='end' onHide={handleHideCart} style={{ width: "512px" }}>
         <Offcanvas.Header closeButton>
           <Offcanvas.Title>{t("shopping_cart")}</Offcanvas.Title>
         </Offcanvas.Header>
         <Offcanvas.Body className="d-flex flex-column justify-content-between">
           <ListGroup>
-                <ListGroup.Item>
-                    <Row>
-                        <Col xs="5"><p className="m-0">{t("pallet")}</p></Col>
-                        <Col xs="3"><p className="m-0">{t("quality")}</p></Col>
-                        <Col xs="2"><p className="m-0">{t("quantity")}</p></Col>
-                        <Col xs="2"><p className="m-0">{t("remove")}</p></Col>
-                    </Row>
-                </ListGroup.Item>
-
-            {paletteInCart.map((palette: CartEntity)=>(
-                <ListGroup.Item>
-                    <Row className="align-items-center">
-                        <Col xs="5"><p className="m-0">{t(palette.pallet?.name)} </p></Col>
-                        <Col xs="3"><Badge>{t(palette.pallet?.quality)}</Badge></Col>
-                        <Col xs="2"><p className="m-0">{palette.quantity}</p></Col>
-                        <Col xs="2"><Button variant="link"><RemoveCircle color="error"></RemoveCircle></Button></Col>
-                    </Row>
-                </ListGroup.Item>
-            ))}
+              <ListGroup.Item>
+                  <Row>
+                      <Col xs="5"><p className="m-0">{t("pallet")}</p></Col>
+                      <Col xs="3"><p className="m-0">{t("quality")}</p></Col>
+                      <Col xs="2"><p className="m-0">{t("quantity")}</p></Col>
+                      <Col xs="2"><p className="m-0">{t("remove")}</p></Col>
+                  </Row>
+              </ListGroup.Item>
+              {paletteInCart.map((palette: CartEntity) => (
+                  <ListGroup.Item>
+                      <Row className="align-items-center">
+                          <Col xs="5"><p className="m-0">{t(palette.pallet?.name)}</p></Col>
+                          <Col xs="3"><Badge>{t(palette.pallet?.quality)}</Badge></Col>
+                          <Col xs="2"><p className="m-0">{palette.quantity}</p></Col>
+                            <Col xs="2">
+                                <Button
+                                    variant="link"
+                                    onClick={async () => {
+                                        await fetch(`${apiUrl}/v1/carts/${palette.pallet?.id}`, {
+                                            method: 'DELETE',
+                                            credentials: 'include',
+                                        });
+                                        setPaletteInCart(prev => prev.filter(p => p.pallet?.id !== palette.pallet?.id));
+                                    }}
+                                >
+                                    <RemoveCircle color="error" />
+                                </Button>
+                            </Col>
+                      </Row>
+                  </ListGroup.Item>
+              ))}
           </ListGroup>
-          <Button className="d-flex justify-content-center align-items-center gap-1 p-2" variant="outline-success" href="/seller"><Group></Group><p className="m-0">{t("find_suppliers")}</p></Button>
+          <Button className="d-flex justify-content-center align-items-center gap-1 p-2" variant="outline-success" href="/seller">
+              <Group></Group><p className="m-0">{t("find_suppliers")}</p>
+          </Button>
         </Offcanvas.Body>
       </Offcanvas>
 
+      {/* ── Login Modal ──────────────────────────────────────────────────── */}
       <Modal show={showLoginModal} centered>
         <Modal.Header className="justify-content-center gap-1">
             <Login></Login>
@@ -509,133 +539,187 @@ export default function Layout() {
         </Modal.Header>
 
         <Modal.Body>
-          <Form className="d-flex flex-column gap-3">
+            <Form className="d-flex flex-column gap-3">
+                <Form.Group>
+                    <FloatingLabel label={t("email")} controlId="floatingEmail">
+                        <Form.Control type="email" placeholder="email" onChange={(e) => setEmailLogin(e.target.value)}></Form.Control>
+                    </FloatingLabel>
+                </Form.Group>
 
-            <Form.Group>
-              <FloatingLabel label={t("email")} controlId="floatingEmail">
-                <Form.Control type="email" placeholder="email" onChange={(e) => {setEmailLogin(e.target.value)}}></Form.Control>
-              </FloatingLabel>
-            </Form.Group>
+                <Form.Group>
+                    <FloatingLabel label={t("password")} controlId="floatingPassword">
+                        <Form.Control type="password" placeholder="password" onChange={(e) => setPasswordLogin(e.target.value)}></Form.Control>
+                    </FloatingLabel>
+                </Form.Group>
 
-            <Form.Group>
-              <FloatingLabel label={t("password")} controlId="floatingPassword">
-                <Form.Control type="password" placeholder="password" onChange={(e) => {setPasswordLogin(e.target.value)}}></Form.Control>
-              </FloatingLabel>
-            </Form.Group>
+                <Button variant="link" className="p-0 text-end" onClick={openRegisterModal}>{t("msg_sign_up")}</Button>
 
-            <Container className="d-flex justify-content-end">
-              <p className="m-0">{t("msg_sign_up")}&nbsp;</p>
-              <Button variant="link" className="p-0 border-0" onClick={() => {setShowLoginModal(false); setShowRegisterModal(true);}}>{t("sign_up")}</Button>
-            </Container>
+                <Alert className="m-0" variant="danger" show={showAlertPasswordIncorrect}>
+                    Sorry, Ihre Password ist nicht korrekt, bitte erneuert versuchen.
+                </Alert>
 
-          <Alert className="m-0" variant="danger" show={showAlertPasswordIncorrect}>
-            Sorry, Ihre Password ist nicht korrekt, bitte erneuert versuchen.
-          </Alert>
-          </Form>
+                {/* "Forgot password" now opens the modal in reset mode */}
+                <Button variant="link" className="p-0 text-end" onClick={openResetModal}>{t("msg_forget_password")}</Button>
+            </Form>
         </Modal.Body>
 
         <Modal.Footer className="justify-content-between">
-          <Button className="w-25" variant="outline-danger" onClick={handleHideModalLogin}>{t("cancel")}</Button>
-          <Button className="w-25" variant="success" onClick={handleLogin}>{t("sign_in")}</Button>
-        </Modal.Footer>
+            <Stack direction="horizontal" className="w-100" gap={2}>
+                <Col>
+                    <Button className="w-100" variant="outline-danger" onClick={handleHideModalLogin}>{t("cancel")}</Button>
+                </Col>
 
+                <Col>
+                    <Button className="w-100" variant="success" onClick={handleLogin}>{t("sign_in")}</Button>
+                </Col>
+            </Stack>
+        </Modal.Footer>
       </Modal>
 
-      <Modal show={showRegisterModal} centered size="lg">
+      {/* ── Register / Reset Password Modal (shared) ─────────────────────── */}
+      <Modal show={showRegisterModal} centered>
         <Modal.Header className="justify-content-center gap-2">
-            <PersonAdd color="success"></PersonAdd>
-          <Modal.Title>{t("sign_up")}</Modal.Title>
+            {isReset
+                ? <LockReset color="warning" />
+                : <PersonAdd color="success" />
+            }
+            <Modal.Title>{modalTitle}</Modal.Title>
         </Modal.Header>
 
-        <Modal.Body className="d-flex flex-column">
-            <Tabs defaultActiveKey="email" fill activeKey={currentTab}>
-                <Tab title={t("verify_email")} eventKey="email" style={{ height: "30vh" }}>
-                    <Form className="d-flex flex-column justify-content-evenly h-100">
-                        <InputGroup>
-                            <FloatingLabel label={t("email")}>
-                                <Form.Control type="email" onChange={(e) => {setEmailRegister(e.target.value);setNewEmployee((prev: CreateEmployeeForm) =>({...prev, email: e.target.value}))}}></Form.Control>
+        <Modal.Body>
+            <Tab.Container activeKey={currentTab}>
+                <Tab.Content>
+
+                    {/* ── Email / Verify tab ────────────────────────────── */}
+                    <Tab.Pane eventKey="email">
+                        <Form className="d-flex flex-column gap-2">
+                            <InputGroup>
+                                <FloatingLabel label={t("email")}>
+                                    <Form.Control
+                                        type="email"
+                                        placeholder="email"
+                                        onChange={(e) => {
+                                            setEmailRegister(e.target.value);
+                                            if (!isReset) {
+                                                setNewEmployee((prev: CreateEmployeeForm) => ({ ...prev, email: e.target.value }));
+                                            }
+                                        }}
+                                    />
+                                </FloatingLabel>
+
+                                <Button
+                                    variant="outline-success"
+                                    className="d-flex align-items-center gap-2"
+                                    onClick={isReset ? handleResetEmailVerification : handleEmailVerification}
+                                >
+                                    <Email></Email>
+                                    <p className="m-0">{t("send_verification_code")}</p>
+                                </Button>
+                            </InputGroup>
+
+                            <Alert variant="success m-0" show={showAlertVerificationEmailSent}>
+                                <CheckIcon color="success" className="me-2"></CheckIcon>{t("msg_code_sent")}
+                            </Alert>
+
+                            <FloatingLabel label={t("verification_code")}>
+                                <Form.Control
+                                    disabled={!showAlertVerificationEmailSent}
+                                    placeholder="******"
+                                    onChange={(e) => setVerificationCodeRegister(e.target.value)}
+                                />
                             </FloatingLabel>
 
-                            <Button variant="outline-success" className="d-flex align-items-center gap-2" onClick={handleEmailVerification}>
-                                <Email></Email>
-                                <p className="m-0">{t("send_verification_code")}</p>
-                            </Button>
-                        </InputGroup>
+                            <Alert variant="danger m-0" show={showAlertVerificationFailed}>
+                                <WarningIcon color="error" className="me-2"></WarningIcon>{t("msg_code_incorrect")}
+                            </Alert>
 
-                        <Alert variant="success m-0" show={showAlertVerificationEmailSent}><CheckIcon color="success" className="me-2"></CheckIcon>{t("msg_code_sent")}</Alert>
+                            {!isReset && (
+                                <Button
+                                    variant="link"
+                                    className="text-end p-0"
+                                    onClick={() => { closeRegisterModal(); setShowLoginModal(true); }}
+                                >
+                                    {t("msg_has_account")}
+                                </Button>
+                            )}
+                        </Form>
+                    </Tab.Pane>
 
-                        <FloatingLabel label={t("verification_code")}>
-                            <Form.Control disabled={!showAlertVerificationEmailSent}  onChange={(e) => setVerificationCodeRegister(e.target.value)}></Form.Control>
-                        </FloatingLabel>
+                    {/* ── Password tab ──────────────────────────────────── */}
+                    <Tab.Pane eventKey="password">
+                        <Form className="d-flex flex-column gap-2">
+                            <FloatingLabel label={isReset ? t("new_password") : t("password")}>
+                                <Form.Control
+                                    type="password"
+                                    disabled={!emailValid}
+                                    value={passwordRegister}
+                                    onChange={(e) => setPasswordRegister(e.target.value)}
+                                />
+                            </FloatingLabel>
 
-                        <Alert variant="danger m-0" show={showAlertVerificationFailed}><WarningIcon color="error" className="me-2"></WarningIcon>{t("msg_code_incorrect")}</Alert>
-                    </Form>                
-                </Tab>
+                            <FloatingLabel label={t("confirm_password")}>
+                                <Form.Control
+                                    type="password"
+                                    disabled={!emailValid}
+                                    value={passwordConfirmRegister}
+                                    onChange={(e) => setPasswordConfirmRegister(e.target.value)}
+                                />
+                            </FloatingLabel>
 
-                <Tab title={t("set_password")} eventKey="password" style={{ height: "30vh" }} disabled={!emailValid}>
-                    <Form className="d-flex flex-column justify-content-around h-100">
-                        <FloatingLabel label={t("password")}>
-                            <Form.Control type="password" disabled={!emailValid} value={passwordRegister} onChange={(e) => setPasswordRegister(e.target.value)}></Form.Control>
-                        </FloatingLabel>
+                            <Alert variant="danger m-0" show={showAlertPasswordInconsistent}>
+                                <WarningIcon color="error" className="me-2"></WarningIcon>{t("msg_password_not_identical")}
+                            </Alert>
+                        </Form>
+                    </Tab.Pane>
 
-                        <FloatingLabel label={t("confirm_password")}>
-                            <Form.Control type="password" disabled={!emailValid} value={passwordConfirmRegister} onChange={(e) => setPasswordConfirmRegister(e.target.value)}></Form.Control>
-                        </FloatingLabel>
-
-                        <Alert variant="danger m-0" show={showAlertPasswordInconsistent}><WarningIcon color="error" className="me-2"></WarningIcon>{t("msg_password_not_identical")}</Alert>
-                    </Form>                
-                </Tab>
-
-                <Tab title={t("update_profile")} eventKey="profile" style={{ height: "30vh" }}>
-                    <Form className="d-flex flex-column gap-3">
-                        <Form.Text>{t("msg_update_profile")}</Form.Text>
-
-                        <Row>
-                            <Col>
-                                <FloatingLabel label={t("firstname")}>
-                                    <Form.Control onChange={(e) => {setNewEmployee((prev: CreateEmployeeForm) => ({...prev, firstName: e.target.value}))}}></Form.Control>
-                                </FloatingLabel>
-                            </Col>
-
-                            <Col>
-                                <FloatingLabel label={t("lastname")}>
-                                    <Form.Control onChange={(e) => {setNewEmployee((prev: CreateEmployeeForm) => ({...prev, lastName: e.target.value}))}}></Form.Control>
-                                </FloatingLabel>
-                            </Col>
-                        </Row>
-
-                        <Row>
-                            <Col>
+                    {/* ── Profile tab (register only) ───────────────────── */}
+                    {!isReset && (
+                        <Tab.Pane eventKey="profile">
+                            <Form className="d-flex flex-column gap-3">
+                                <Form.Text>{t("msg_update_profile")}</Form.Text>
                                 <FloatingLabel label={t("salutation")}>
-                                    <Form.Select onChange={(e) => {setNewEmployee((prev: CreateEmployeeForm) => ({...prev, salutation: e.target.value}))}}>
+                                    <Form.Select onChange={(e) => setNewEmployee((prev: CreateEmployeeForm) => ({ ...prev, salutation: e.target.value }))}>
                                         <option value="mr">{t("mr")}</option>
                                         <option value="ms">{t("ms")}</option>
                                     </Form.Select>
                                 </FloatingLabel>
-                            </Col>
-
-                            <Col>
+                                <FloatingLabel label={t("firstname")}>
+                                    <Form.Control onChange={(e) => setNewEmployee((prev: CreateEmployeeForm) => ({ ...prev, firstName: e.target.value }))} />
+                                </FloatingLabel>
+                                <FloatingLabel label={t("lastname")}>
+                                    <Form.Control onChange={(e) => setNewEmployee((prev: CreateEmployeeForm) => ({ ...prev, lastName: e.target.value }))} />
+                                </FloatingLabel>
                                 <FloatingLabel label={t("language")}>
-                                    <Form.Select onChange={(e) => {setNewEmployee((prev: CreateEmployeeForm) => ({...prev, preferredLanguage: e.target.value}))}}>
+                                    <Form.Select onChange={(e) => setNewEmployee((prev: CreateEmployeeForm) => ({ ...prev, preferredLanguage: e.target.value }))}>
                                         <option value="GB">{t("english")}</option>
                                         <option value="DE">{t("german")}</option>
                                         <option value="RU">{t("russian")}</option>
                                     </Form.Select>
                                 </FloatingLabel>
-                            </Col>
-                        </Row>
-                    </Form>
-                </Tab>
-            </Tabs>
+                            </Form>
+                        </Tab.Pane>
+                    )}
+
+                </Tab.Content>
+            </Tab.Container>
         </Modal.Body>
 
-
         <Modal.Footer className="justify-content-between">
-          <Button className="w-25" variant="outline-danger">{t("cancel")}</Button>
-          <Button className="w-25" variant="success" onClick={handleRegisterNextStep}>{t("next")}</Button>
+            <Stack direction="horizontal" className="w-100" gap={2}>
+                <Col>
+                    <Button className="w-100" variant="outline-danger" onClick={closeRegisterModal}>{t("cancel")}</Button>
+                </Col>
+
+                <Col>
+                    <Button className="w-100" variant={isReset ? "warning" : "success"} onClick={handleRegisterNextStep}>
+                        {nextBtnLabel}
+                    </Button>                
+                </Col>
+            </Stack>
         </Modal.Footer>
       </Modal>
 
+      {/* ── Register success modal ───────────────────────────────────────── */}
       <Modal show={showModalRegisterSuccess} centered size="sm">
         <Modal.Header className="justify-content-center">
           <CheckCircle></CheckCircle>
@@ -648,36 +732,32 @@ export default function Layout() {
           <Button variant="outline-danger">Spaeter</Button>
           <Button variant="success">Anmelden</Button>
         </Modal.Footer>
-
       </Modal>
 
+      {/* ── Logout confirm modal ─────────────────────────────────────────── */}
       <Modal show={showModalLogoutConfirm} centered>
         <Modal.Header className="justify-content-center p-4">
             <WarningIcon color="error" className="me-1"></WarningIcon>
           <h5 className="m-0 text-danger">{t("sign_out")}</h5>
         </Modal.Header>
-
         <Modal.Body className="d-flex justify-content-center p-5">{t("msg_sign_out")}</Modal.Body>
-
         <Modal.Footer className="justify-content-between">
-          <Button className="w-25" variant="outline-success" onClick={() => {setShowModalLogoutConfirm(false)}}>{t("cancel")}</Button>
+          <Button className="w-25" variant="outline-success" onClick={() => setShowModalLogoutConfirm(false)}>{t("cancel")}</Button>
           <Button className="w-25" variant="danger" onClick={() => handleLogout()}>{t("sign_out")}</Button>
         </Modal.Footer>
-
       </Modal>
 
+      {/* ── Toasts ───────────────────────────────────────────────────────── */}
       <ToastContainer position="middle-center">
         <Toast delay={3000} autohide bg="success" show={showToastLoginSuccess} onClose={() => setShowToastLoginSuccess(false)}>
           <Toast.Header closeButton={false} className="justify-content-center p-2">
             <VerifiedUser></VerifiedUser>
             <h5 className="m-0">&nbsp;Gratuliere.</h5>
-
           </Toast.Header>
           <Toast.Body className="d-flex justify-content-center">
             <h6 className="text-light p-3">Sie sind angemeldet.</h6>
           </Toast.Body>
         </Toast>
-
       </ToastContainer>
 
       <ToastContainer position="middle-center">
@@ -685,13 +765,11 @@ export default function Layout() {
           <Toast.Header closeButton={false} className="justify-content-center p-2">
             <CheckIcon></CheckIcon>
             <h5 className="m-0">&nbsp;Vielen Dank.</h5>
-
           </Toast.Header>
           <Toast.Body className="d-flex justify-content-center">
-            <h6 className=" p-3">Sie sind abgemeldet.</h6>
+            <h6 className="p-3">Sie sind abgemeldet.</h6>
           </Toast.Body>
         </Toast>
-
       </ToastContainer>
 
     </div>

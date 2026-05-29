@@ -506,14 +506,6 @@ public class LoadDatabase {
             c1.setGermanyDeliver(false);
             companyRepository.save(c1);
 
-            Employee admin = new Employee();
-            admin.setUsername("admin");
-            admin.setEmail("admin@palette365.de");
-            admin.setPassword(passwordEncoder.encode(adminPassword));
-            admin.setAdmin(true);
-            employeeRepository.save(admin);
-
-
             Employee e1 = new Employee();
             e1.setEmail("dingqing.he@web.de");
             e1.setCompany(c1);

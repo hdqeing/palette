@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface PalletRepository extends JpaRepository<Pallet, Long> {
     List<Pallet> findByPalletSort_Id(Long palletSortId);
+    List<Pallet> findByCustomFalse();
+    List<Pallet> findByCustomTrueAndOwnerId(Long ownerId);
 }

@@ -2,9 +2,9 @@ import { Badge, Button, Col, Container, FloatingLabel, Form, Image, Modal, Row, 
 import type { Route } from "../+types/root";
 import type { QueryDetail, QueryPalletItem, QuerySeller } from "../types";
 import { Cancel, CheckCircle, ReceiptLong } from "@mui/icons-material";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
-import { useFetcher } from "react-router";
+import { useFetcher, useNavigate } from "react-router";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -34,11 +34,12 @@ export async function clientAction({ request, params }: Route.ActionArgs) {
 }
 
 export default function QueryDetailPage({ loaderData }: Route.ComponentProps) {
-    if (!loaderData) return null; // or a proper error/skeleton component
+  if (!loaderData) return null;
 
   const query: QueryDetail = loaderData;
   const { t } = useTranslation();
   const fetcher = useFetcher();
+  const navigate = useNavigate();
 
   const [showModalAcceptQuote, setShowModalAcceptQuote] = useState(false);
   const [showModalRejectQuote, setShowModalRejectQuote] = useState(false);
@@ -49,7 +50,7 @@ export default function QueryDetailPage({ loaderData }: Route.ComponentProps) {
   const [currentTab, setCurrentTab] = useState("confirm");
   const [orderId, setOrderId] = useState(0);
 
-const deadline = query.deadline?.split("T")[0] ?? "";
+  const deadline = query.deadline?.split("T")[0] ?? "";
   const isSubmitting = fetcher.state === "submitting";
 
   // Show toast after successful action
@@ -72,6 +73,31 @@ const deadline = query.deadline?.split("T")[0] ?? "";
       { intent, sellerId: String(selectedSellerId) },
       { method: "POST" }
     );
+  };
+
+  /**
+   * Called when the user clicks the link inside the "quote accepted" message.
+   * - If an order already exists for this query  → navigate to its detail page.
+   * - If not (404)                               → open the Create Order modal.
+   */
+  const handleCheckOrCreateOrder = async () => {
+    try {
+      const res = await fetch(`${apiUrl}/v1/buyer/orders/query/${query.id}`, {
+        credentials: "include",
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        navigate(`/order/${data.id}`);
+      } else if (res.status === 404) {
+        setCurrentTab("confirm");
+        setShowModalCreateOrder(true);
+      } else {
+        console.error("Unexpected response checking order:", res.status);
+      }
+    } catch (error) {
+      console.error("Error checking order for query:", error);
+    }
   };
 
   const handleCreateOrder = async (queryId: number) => {
@@ -125,29 +151,17 @@ const deadline = query.deadline?.split("T")[0] ?? "";
             </Col>
           </Row>
         </Form>
-        
-        <Container className="w-75 p-0 d-flex align-items-center gap-1" fluid>
-          <span>Quote from one seller has been accepted. You can </span><Button variant="link" className="p-0" onClick={() => setShowModalCreateOrder(true)}>Create an Order</Button> <span>for this request to streamline procurement.</span>
-        </Container>
-
 
         <Table className="w-75" bordered>
           <thead>
             <tr>
-              <th className="text-center">{t("seller")}</th>
+              <th className="text-center align-middle">{t("seller")}</th>
               {query.pallets.map((item: QueryPalletItem) => (
-                <th key={item.queryPalletId}>
-                  <div className="d-flex gap-2 align-items-center justify-content-center">
-                    <Image
-                      src={item.pallet.url}
-                      className="shadow bg-body-tertiary rounded"
-                      style={{ width: "64px", height: "64px", objectFit: "contain" }}
-                    />
-                    <b>{t(item.pallet.name)} <Badge>{t(item.pallet.quality)}</Badge> <br /> {item.quantity}</b>
-                  </div>
+                <th key={item.queryPalletId} className="text-center">
+                  {t(item.pallet.name)} x {item.quantity} <br /> <Badge>{t(item.pallet.quality)}</Badge>
                 </th>
               ))}
-              <th className="text-center">{t("total_price")}</th>
+              <th className="text-center align-middle">{t("total_price")}</th>
               <th></th>
             </tr>
           </thead>
@@ -155,7 +169,7 @@ const deadline = query.deadline?.split("T")[0] ?? "";
           <tbody>
             {query.sellers.map((seller: QuerySeller) => (
               <tr key={seller.sellerId}>
-                <td>{seller.sellerTitle}</td>
+                <td className="text-center">{seller.sellerTitle}</td>
 
                 {query.pallets.map((item: QueryPalletItem) => {
                   const quote = seller.quotes.find((q) => q.queryPalletId === item.queryPalletId);
@@ -168,9 +182,23 @@ const deadline = query.deadline?.split("T")[0] ?? "";
 
                 <td className="text-center">{`€ ${seller.sum}`}</td>
 
-                <td className="w-25 text-center">
+                <td className="w-25">
                   {seller.accepted ? (
-                    <><CheckCircle color="success" className="me-1"></CheckCircle><b>{t("accepted")}</b></>
+                    <span className="d-flex align-items-center gap-1">
+                      <CheckCircle color="success" />
+                      <Trans
+                        i18nKey="msg_quote_accepted"
+                        components={{
+                          btn: (
+                            <Button
+                              variant="link"
+                              className="p-0 m-0 align-baseline"
+                              onClick={handleCheckOrCreateOrder}
+                            />
+                          )
+                        }}
+                      />
+                    </span>
                   ) : seller.rejected ? (
                     <><Cancel color="error" className="me-1"></Cancel><b>{t("rejected")}</b></>
                   ) : (
@@ -293,14 +321,14 @@ const deadline = query.deadline?.split("T")[0] ?? "";
         </ToastContainer>
 
         <ToastContainer position="middle-center">
-            <Toast delay={3000} autohide bg="danger" show={showToastRejected} onClose={() => setShowToastRejected(false)}>
-              <Toast.Header closeButton={false} className="d-flex justify-content-center">
-                  <Cancel color="error" className="me-1"/>{t("reject_quote")}
-              </Toast.Header>
-              <Toast.Body className="text-center text-white">
-                  {t("toast_quote_rejected")}
-              </Toast.Body>
-            </Toast>
+          <Toast delay={3000} autohide bg="danger" show={showToastRejected} onClose={() => setShowToastRejected(false)}>
+            <Toast.Header closeButton={false} className="d-flex justify-content-center">
+              <Cancel color="error" className="me-1" />{t("reject_quote")}
+            </Toast.Header>
+            <Toast.Body className="text-center text-white">
+              {t("toast_quote_rejected")}
+            </Toast.Body>
+          </Toast>
         </ToastContainer>
 
       </main>

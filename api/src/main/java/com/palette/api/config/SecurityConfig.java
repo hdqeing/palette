@@ -99,16 +99,15 @@ public class SecurityConfig {
         DefaultBearerTokenResolver headerResolver = new DefaultBearerTokenResolver();
 
         return request -> {
-            // Try Authorization header first (Entra admin tokens)
             String headerToken = headerResolver.resolve(request);
-            if (headerToken != null) {
+            if (headerToken != null && !headerToken.isBlank()) {  // <-- add !isBlank()
                 return headerToken;
             }
 
-            // Fall back to cookie (local user tokens)
             if (request.getCookies() != null) {
                 for (jakarta.servlet.http.Cookie cookie : request.getCookies()) {
-                    if ("jwt-token".equals(cookie.getName())) {
+                    if ("jwt-token".equals(cookie.getName())
+                            && !cookie.getValue().isBlank()) {  // <-- also guard the cookie
                         return cookie.getValue();
                     }
                 }

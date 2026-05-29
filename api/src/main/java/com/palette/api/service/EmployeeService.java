@@ -40,10 +40,6 @@ public class EmployeeService {
         Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> new EmployeeNotFoundException("Employee with id " + id + " not found"));
 
-        if (employee.isAdmin()) {
-            throw new IllegalStateException("Admin employee cannot be deleted");
-        }
-
         employeeRepository.delete(employee);
     }
 
@@ -56,7 +52,6 @@ public class EmployeeService {
         employee.setPreferredLanguage(request.getPreferredLanguage());
         employee.setTelephone(request.getTelephone());
         employee.setSalutation(request.getSalutation());
-        employee.setAdmin(false);
         employee.setEmailNotificationEnabled(false);
 
         String verificationCode = String.format("%06d", (new SecureRandom()).nextInt(1_000_000));
@@ -73,7 +68,7 @@ public class EmployeeService {
         return employee;
     }
 
-    public Employee updateEmployee(Employee employee, UpdateEmployeeRequest request, boolean isAdmin) {
+    public Employee updateEmployee(Employee employee, UpdateEmployeeRequest request) {
         if (request.getEmail() != null && !request.getEmail().isBlank()) {
             Employee existing = employeeRepository.findByEmail(request.getEmail()).orElse(null);
             if (existing != null && !existing.getId().equals(employee.getId())) {
@@ -82,20 +77,18 @@ public class EmployeeService {
             employee.setEmail(request.getEmail());
         }
 
-        employee.setUsername(request.getUsername());
-        employee.setFirstName(request.getFirstName());
-        employee.setLastName(request.getLastName());
-        employee.setPreferredLanguage(request.getPreferredLanguage());
-        employee.setTelephone(request.getTelephone());
-        employee.setSalutation(request.getSalutation());
+        if (request.getUsername()          != null) employee.setUsername(request.getUsername());
+        if (request.getFirstName()         != null) employee.setFirstName(request.getFirstName());
+        if (request.getLastName()          != null) employee.setLastName(request.getLastName());
+        if (request.getPreferredLanguage() != null) employee.setPreferredLanguage(request.getPreferredLanguage());
+        if (request.getTelephone()         != null) employee.setTelephone(request.getTelephone());
+        if (request.getSalutation()        != null) employee.setSalutation(request.getSalutation());
 
-        if (isAdmin) {
-            if (request.getCompanyId() != null) {
-                Company company = companyRepository.findById(request.getCompanyId())
-                        .orElseThrow(() -> new IllegalArgumentException("Company not found"));
-                employee.setCompany(company);
-            }
-        }
+        if (request.getCompanyId()        != null) {
+            Company company = companyRepository.findById(request.getCompanyId()).orElseThrow();
+            employee.setCompany(company);
+        };
+
 
         return employeeRepository.save(employee);
     }

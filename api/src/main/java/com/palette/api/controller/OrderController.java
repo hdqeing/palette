@@ -100,6 +100,33 @@ public class OrderController {
         }
     }
 
+    /**
+     * GET /v1/buyer/orders/query/{queryId}
+     * Returns the order associated with the given query, only if the
+     * authenticated employee's company is the buyer on that order.
+     */
+    @GetMapping("/buyer/orders/query/{queryId}")
+    public ResponseEntity<?> getBuyerOrderByQueryId(
+            @CookieValue(value = "jwt-token", required = false) String token,
+            @PathVariable Long queryId
+    ) {
+        try {
+            Company buyer = companyFromToken(token);
+            Order order = orderService.findByQueryId(queryId).orElse(null);
+            if (order == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Order not found for queryId=" + queryId);
+            }
+            if (!order.getBuyer().getId().equals(buyer.getId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
+            }
+            return ResponseEntity.ok(OrderResponse.from(order));
+        } catch (AuthException e) {
+            return e.toResponse();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred");
+        }
+    }
+
     // ─── Seller endpoints ─────────────────────────────────────────────────────
 
     /**
