@@ -1,10 +1,13 @@
 package com.palette.api.controller;
 
 import com.palette.api.dto.BuyerCreateOrderRequest;
+import com.palette.api.dto.OrderDetailResponse;
 import com.palette.api.dto.OrderResponse;
 import com.palette.api.dto.UpdateOrderRequest;
 import com.palette.api.model.*;
 import com.palette.api.repository.EmployeeRepository;
+import com.palette.api.repository.QueryPalletRepository;
+import com.palette.api.repository.QuoteRepository;
 import com.palette.api.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,6 +17,8 @@ import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Order endpoints for buyers (customers) and sellers.
@@ -145,6 +150,64 @@ public class OrderController {
             return e.toResponse();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred");
+        }
+    }
+
+    @Autowired
+    private QueryPalletRepository queryPalletRepository;
+
+    @Autowired
+    private QuoteRepository quoteRepository;
+
+    /**
+     * GET /v1/seller/orders/details
+     * Returns all orders for the authenticated seller, including line items
+     * with per-item prices resolved from the latest accepted quotes.
+     */
+    @GetMapping("/seller/orders/details")
+    public ResponseEntity<?> getSellerOrderDetails(
+            @CookieValue(value = "jwt-token", required = false) String token) {
+        try {
+            Company seller = companyFromToken(token);
+            List<Order> orders = orderService.findBySeller(seller.getId());
+
+            List<OrderDetailResponse> response = orders.stream().map(order -> {
+                List<OrderDetailResponse.OrderItemDto> items = List.of();
+
+                if (order.getQuery() != null) {
+                    List<QueryPallet> queryPallets =
+                            queryPalletRepository.findByQuery(order.getQuery());
+
+                    // Fetch the latest quotes from this seller for each query pallet
+                    List<Quote> quotes = quoteRepository
+                            .findByQueryPalletInAndSellerAndIsLatestTrue(queryPallets, seller);
+
+                    // Build a map for O(1) lookup: queryPalletId → price
+                    Map<Long, Double> priceByQueryPalletId = quotes.stream()
+                            .collect(Collectors.toMap(
+                                    q -> q.getQueryPallet().getId(),
+                                    Quote::getPrice
+                            ));
+
+                    items = queryPallets.stream()
+                            .map(qp -> new OrderDetailResponse.OrderItemDto(
+                                    qp.getPallet(),
+                                    qp.getQuantity(),
+                                    priceByQueryPalletId.getOrDefault(qp.getId(), 0.0)
+                            ))
+                            .toList();
+                }
+
+                return OrderDetailResponse.from(order, items);
+            }).toList();
+
+            return ResponseEntity.ok(response);
+
+        } catch (AuthException e) {
+            return e.toResponse();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An error occurred");
         }
     }
 

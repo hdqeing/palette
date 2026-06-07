@@ -17,5 +17,10 @@ public interface QuoteRepository extends JpaRepository<Quote, Long> {
     );
     Optional<Quote> findByQueryPalletIdAndSellerId(Long queryPalletId, Long sellerId);
 
+    // All latest quotes for a list of query pallets by a specific seller
+    List<Quote> findByQueryPalletInAndSellerAndIsLatestTrue(
+            List<QueryPallet> queryPallets, Company seller
+    );
+
 
 }

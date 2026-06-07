@@ -1,5 +1,7 @@
 // ─── Company & Employee ────────────────────────────────────────────────────
 
+import { ConfirmationNumberRounded } from "@mui/icons-material";
+
 export interface Company {
   id: number;
   title: string;
@@ -220,4 +222,26 @@ interface Stock {
     company: Company;
     pallet: Pallet;
     photos: Array<Photo>;
+}
+
+export interface Order {
+  id: number;
+  buyerId: number;
+  buyerTitle: string;
+  createdAt: string;
+  deliveryAddress: string;
+  deliveryDate: string;
+  queryId: number;
+  sellerId: number;
+  sellerTitle: string;
+  status: string;
+  totalPrice: number;
+}
+
+export enum OrderStatus {
+  PENDING,
+  CONFIRMED,
+  SHIPPED,
+  DELIVERED,
+  CANCELLED,
 }

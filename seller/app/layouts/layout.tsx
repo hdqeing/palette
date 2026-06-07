@@ -239,11 +239,11 @@ export default function SellerLayout({}) {
               </Nav.Item>
               <Nav.Item className="d-flex align-items-center">
                 <RequestQuoteIcon></RequestQuoteIcon>
-                <Nav.Link href="/query">{t('request_for_quote')}</Nav.Link>
+                <Nav.Link href="/queries">{t('request_for_quote')}</Nav.Link>
               </Nav.Item>
               <Nav.Item className="d-flex align-items-center">
                 <ReceiptLongIcon></ReceiptLongIcon>
-                <Nav.Link href="/order">{t('order')}</Nav.Link>
+                <Nav.Link href="/orders">{t('order')}</Nav.Link>
               </Nav.Item>
               <Nav.Item className="d-flex align-items-center">
                 <AnalyticsIcon></AnalyticsIcon>

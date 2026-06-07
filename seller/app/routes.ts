@@ -3,9 +3,11 @@ import { type RouteConfig, index, layout, route } from "@react-router/dev/routes
 export default [
     layout("./layouts/layout.tsx", [
         index("./routes/home.tsx"),
-        route("query", "./routes/query.tsx"),
+        route("queries", "./routes/queries.tsx"),
+        route("queries/:queryId", "./routes/query-detail.tsx"),
         route("product", "./routes/product.tsx"),
-        route("order", "./routes/order.tsx"),
+        route("orders", "./routes/orders.tsx"),
+        route("orders/:orderId", "./routes/order-detail.tsx"),
         route("analysis", "./routes/analysis.tsx"),
         route("notification", "./routes/notification.tsx"),
         route("profile", "./routes/profile.tsx"),
