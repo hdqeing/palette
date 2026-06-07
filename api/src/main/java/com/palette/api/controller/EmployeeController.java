@@ -72,38 +72,6 @@ public class EmployeeController {
         }
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteEmployee(
-            @PathVariable Long id,
-            @CookieValue("jwt-token") String token
-    ) {
-        try {
-            Jwt jwt = jwtDecoder.decode(token);
-            String email = jwt.getSubject();
-
-            Employee currentEmployee = employeeRepository.findByEmail(email)
-                    .orElseThrow(() -> new EmployeeNotFoundException(email));
-
-            if (!currentEmployee.isAdmin()) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body("You are not authorized");
-            }
-
-            employeeService.deleteEmployee(id);
-            return ResponseEntity.noContent().build();
-
-        } catch (EmployeeNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (JwtException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("An error occurred while deleting employee");
-        }
-    }
-
     @PutMapping("/{id}")
     public ResponseEntity<?> updateEmployee(
             @PathVariable Long id,
@@ -125,15 +93,14 @@ public class EmployeeController {
             Employee targetEmployee = employeeRepository.findById(id)
                     .orElseThrow(() -> new EmployeeNotFoundException("id=" + id));
 
-            boolean isAdmin = currentEmployee.isAdmin();
             boolean isSelf = currentEmployee.getId().equals(targetEmployee.getId());
 
-            if (!isAdmin && !isSelf) {
+            if (!isSelf) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body("You are not authorized to edit this employee");
             }
 
-            Employee updatedEmployee = employeeService.updateEmployee(targetEmployee, request, isAdmin);
+            Employee updatedEmployee = employeeService.updateEmployee(targetEmployee, request);
 
             return ResponseEntity.ok(updatedEmployee);
 

@@ -221,12 +221,11 @@ export default function SellerLayout({}) {
   return (
     <Container fluid className="p-0">
       <div className="min-vh-100 d-flex" >
-
         <Col xxl="2" className="rounded shadow p-4 d-flex flex-column justify-content-between bg-warning-subtle">
           <Row >
             <div className="shadow p-3 mb-5 bg-body-tertiary rounded d-flex justify-content-center align-items-center">
               <Image src="/iconPalette.svg" style={{ height: "64px", width: "auto" }}></Image>
-              <h3 className="my-0 ms-2">Palette365</h3>
+              <h3 className="my-0 ms-2">Palletly</h3>
             </div>
 
             <Nav className="flex-column">
@@ -240,11 +239,11 @@ export default function SellerLayout({}) {
               </Nav.Item>
               <Nav.Item className="d-flex align-items-center">
                 <RequestQuoteIcon></RequestQuoteIcon>
-                <Nav.Link href="/query">{t('request_for_quote')}</Nav.Link>
+                <Nav.Link href="/queries">{t('request_for_quote')}</Nav.Link>
               </Nav.Item>
               <Nav.Item className="d-flex align-items-center">
                 <ReceiptLongIcon></ReceiptLongIcon>
-                <Nav.Link href="/order">{t('order')}</Nav.Link>
+                <Nav.Link href="/orders">{t('order')}</Nav.Link>
               </Nav.Item>
               <Nav.Item className="d-flex align-items-center">
                 <AnalyticsIcon></AnalyticsIcon>
@@ -334,7 +333,6 @@ export default function SellerLayout({}) {
           </div>
           
         </Col>
-
       </div>
 
       <Modal

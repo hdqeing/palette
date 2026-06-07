@@ -59,7 +59,7 @@ public class AdminEmployeeController {
     ) {
         Employee target = employeeRepository.findById(id)
                 .orElseThrow(() -> new EmployeeNotFoundException("id=" + id));
-        Employee updated = employeeService.updateEmployee(target, request, true);
+        Employee updated = employeeService.updateEmployee(target, request);
         return ResponseEntity.ok(toDto(updated));
     }
 

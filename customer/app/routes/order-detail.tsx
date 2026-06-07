@@ -25,31 +25,13 @@ export function meta({}: Route.MetaArgs) {
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Company = {
-    id: number;
-    title: string;
-    city: string;
-    postalCode: string;
-    street: string;
-    houseNumber: string;
-    homepage: string;
-    vat: string;
-    verified: boolean;
-};
-
-type Query = {
-    id: number;
-    deadline: string;
-    deliveryRequest: boolean;
-    isClosed: boolean;
-    buyer: Company;
-};
-
 type Order = {
     id: number;
-    query: Query;
-    seller: Company;
-    buyer: Company;
+    queryId: number | null;
+    sellerId: number;
+    sellerTitle: string;
+    buyerId: number;
+    buyerTitle: string;
     totalPrice: number;
     createdAt: string;
     deliveryDate: string | null;
@@ -87,35 +69,6 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
             <Col xs={5} className="text-muted small fw-semibold">{label}</Col>
             <Col xs={7} className="small">{value}</Col>
         </Row>
-    );
-}
-
-function CompanyCard({ title, company }: { title: string; company: Company }) {
-    return (
-        <Card className="border-0 bg-light h-100">
-            <Card.Body>
-                <div className="text-muted small fw-semibold text-uppercase mb-2">{title}</div>
-                <div className="fw-bold mb-1">{company.title}</div>
-                <div className="text-muted small">
-                    {company.street} {company.houseNumber}<br />
-                    {company.postalCode} {company.city}
-                </div>
-                {company.homepage && (
-                    <a
-                        href={company.homepage}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="small d-block mt-1"
-                    >
-                        {company.homepage}
-                    </a>
-                )}
-                <div className="text-muted small mt-1">VAT: {company.vat}</div>
-                {company.verified && (
-                    <Badge bg="success" className="mt-2">Verified</Badge>
-                )}
-            </Card.Body>
-        </Card>
     );
 }
 
@@ -221,7 +174,9 @@ export default function BuyerOrderDetailPage() {
                                 Order Summary
                             </div>
                             <InfoRow label="Order ID" value={`#${order.id}`} />
-                            <InfoRow label="Query" value={`#${order.query.id}`} />
+                            {order.queryId && (
+                                <InfoRow label="Query" value={`#${order.queryId}`} />
+                            )}
                             <InfoRow
                                 label="Created"
                                 value={
@@ -238,19 +193,6 @@ export default function BuyerOrderDetailPage() {
                                         <CalendarTodayIcon style={{ fontSize: 14 }} />
                                         {formatDate(order.deliveryDate)}
                                     </span>
-                                }
-                            />
-                            <InfoRow
-                                label="Delivery type"
-                                value={
-                                    order.query.deliveryRequest ? (
-                                        <Badge bg="secondary" className="d-flex align-items-center gap-1" style={{ width: "fit-content" }}>
-                                            <LocalShippingIcon fontSize="small" />
-                                            Delivery
-                                        </Badge>
-                                    ) : (
-                                        "Pick-up"
-                                    )
                                 }
                             />
                             {order.deliveryAddress && (
@@ -281,21 +223,29 @@ export default function BuyerOrderDetailPage() {
                 </Card.Body>
             </Card>
 
-            {/* Buyer & Seller cards */}
+            {/* Buyer & Seller */}
             <Row className="g-3 mb-4">
                 <Col xs={12} md={6}>
-                    <div className="text-muted small fw-semibold text-uppercase mb-2 d-flex align-items-center gap-1">
-                        <ShoppingBagIcon fontSize="small" />
-                        Buyer
-                    </div>
-                    <CompanyCard title="" company={order.buyer} />
+                    <Card className="border-0 bg-light h-100">
+                        <Card.Body>
+                            <div className="text-muted small fw-semibold text-uppercase mb-2 d-flex align-items-center gap-1">
+                                <ShoppingBagIcon fontSize="small" />
+                                Buyer
+                            </div>
+                            <div className="fw-bold">{order.buyerTitle}</div>
+                        </Card.Body>
+                    </Card>
                 </Col>
                 <Col xs={12} md={6}>
-                    <div className="text-muted small fw-semibold text-uppercase mb-2 d-flex align-items-center gap-1">
-                        <StorefrontIcon fontSize="small" />
-                        Seller
-                    </div>
-                    <CompanyCard title="" company={order.seller} />
+                    <Card className="border-0 bg-light h-100">
+                        <Card.Body>
+                            <div className="text-muted small fw-semibold text-uppercase mb-2 d-flex align-items-center gap-1">
+                                <StorefrontIcon fontSize="small" />
+                                Seller
+                            </div>
+                            <div className="fw-bold">{order.sellerTitle}</div>
+                        </Card.Body>
+                    </Card>
                 </Col>
             </Row>
 

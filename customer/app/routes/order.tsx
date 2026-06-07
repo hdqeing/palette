@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import {
     Container, Row, Col, Spinner, Badge, Card,
-    Toast, ToastContainer,
+    Toast, ToastContainer, Button,
 } from "react-bootstrap";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
@@ -10,6 +10,7 @@ import CancelOutlinedIcon from "@mui/icons-material/CancelOutlined";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import type { Route } from "./+types/home";
 import { CheckCircleOutlineOutlined } from "@mui/icons-material";
+import { useNavigate } from "react-router";
 
 export function meta({}: Route.MetaArgs) {
     return [
@@ -20,28 +21,13 @@ export function meta({}: Route.MetaArgs) {
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Company = {
-    id: number;
-    title: string;
-    city: string;
-    postalCode: string;
-    street: string;
-    houseNumber: string;
-};
-
-type Query = {
-    id: number;
-    deadline: string;
-    deliveryRequest: boolean;
-    isClosed: boolean;
-    buyer: Company;
-};
-
 type Order = {
     id: number;
-    query: Query;
-    seller: Company;
-    buyer: Company;
+    queryId: number | null;
+    sellerId: number;
+    sellerTitle: string;
+    buyerId: number;
+    buyerTitle: string;
     totalPrice: number;
     createdAt: string;
     deliveryDate: string | null;
@@ -102,6 +88,7 @@ function formatCurrency(amount: number): string {
 
 export default function BuyerOrdersPage() {
     const apiUrl = import.meta.env.VITE_API_URL;
+    const navigate = useNavigate();
 
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
@@ -170,7 +157,11 @@ export default function BuyerOrdersPage() {
                         const statusCfg = STATUS_CONFIG[order.status];
                         return (
                             <Col xs={12} key={order.id}>
-                                <Card className="shadow-sm border-0">
+                                <Card
+                                    className="shadow-sm border-0"
+                                    onClick={() => navigate(`/order/${order.id}`)}
+                                    style={{ cursor: "pointer" }}
+                                >
                                     <Card.Body>
                                         <Row className="align-items-start">
                                             {/* Left: order info */}
@@ -186,18 +177,10 @@ export default function BuyerOrdersPage() {
                                                         {statusCfg.icon}
                                                         {statusCfg.label}
                                                     </Badge>
-                                                    {order.query.deliveryRequest && (
-                                                        <Badge bg="secondary" className="d-flex align-items-center gap-1">
-                                                            <LocalShippingIcon fontSize="small" />
-                                                            Delivery
-                                                        </Badge>
-                                                    )}
                                                 </div>
 
                                                 <div className="text-muted small mb-1">
-                                                    <strong>Seller:</strong>{" "}
-                                                    {order.seller.title},{" "}
-                                                    {order.seller.postalCode} {order.seller.city}
+                                                    <strong>Seller:</strong> {order.sellerTitle}
                                                 </div>
 
                                                 {order.deliveryAddress && (
@@ -208,8 +191,12 @@ export default function BuyerOrdersPage() {
                                                 )}
 
                                                 <div className="text-muted small">
-                                                    <strong>Query:</strong> #{order.query.id}
-                                                    {" · "}
+                                                    {order.queryId && (
+                                                        <>
+                                                            <strong>Query:</strong> #{order.queryId}
+                                                            {" · "}
+                                                        </>
+                                                    )}
                                                     <strong>Created:</strong>{" "}
                                                     {formatDate(order.createdAt)}
                                                     {order.deliveryDate && (

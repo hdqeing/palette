@@ -32,7 +32,11 @@ public class Employee {
     private List<Message> messages;
     private boolean emailNotificationEnabled;
     private String username;
-    private boolean isAdmin;
+    private boolean isActive;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private CompanyRole companyRole = CompanyRole.MEMBER;
 
     @Column(unique = true)
     private String entraOid; // Maps to the "oid" claim in Entra tokens

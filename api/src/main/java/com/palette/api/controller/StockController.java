@@ -3,6 +3,7 @@ package com.palette.api.controller;
 import com.azure.storage.blob.BlobClient;
 import com.azure.storage.blob.BlobClientBuilder;
 import com.palette.api.dto.CreateStockRequest;
+import com.palette.api.dto.StockResponse;
 import com.palette.api.dto.UpdateStockRequest;
 import com.palette.api.exception.EmployeeNotFoundException;
 import com.palette.api.exception.PalletNotFoundException;
@@ -50,7 +51,7 @@ public class StockController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Transactional
-    public ResponseEntity<Stock> newStock(
+    public ResponseEntity<StockResponse> newStock(
             @CookieValue("jwt-token") String token,
             @RequestPart("stock") CreateStockRequest request,
             @RequestPart(value = "files", required = false) List<MultipartFile> files
@@ -112,31 +113,47 @@ public class StockController {
         photoRepository.saveAll(photos);
         savedStock.setPhotos(photos);
 
-        return ResponseEntity.ok(savedStock);
+        return ResponseEntity.ok(StockResponse.from(savedStock));
     }
 
     @GetMapping()
-    public ResponseEntity<List<Stock>> getAllStocks(){
-        List<Stock> stocks = stockRepository.findAll();
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<StockResponse>> getAllStocks() {
+        List<StockResponse> stocks = stockRepository.findAll()
+                .stream()
+                .map(StockResponse::from)
+                .toList();
         return ResponseEntity.ok(stocks);
     }
 
     @GetMapping("/seller")
-    public ResponseEntity<List<Stock>> getStocksBySeller(@CookieValue("jwt-token") String token){
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<StockResponse>> getStocksBySeller(
+            @CookieValue("jwt-token") String token) {
+
         Jwt jwt = jwtDecoder.decode(token);
         String email = jwt.getSubject();
 
-        // Find employee by email
-        Employee employee = employeeRepository.findByEmail(email).orElseThrow(() -> new EmployeeNotFoundException(email));
+        Employee employee = employeeRepository.findByEmail(email)
+                .orElseThrow(() -> new EmployeeNotFoundException(email));
         Company seller = employee.getCompany();
 
-        return ResponseEntity.ok(stockRepository.findByCompanyId(seller.getId()));
+        List<StockResponse> stocks = stockRepository.findByCompanyId(seller.getId())
+                .stream()
+                .map(StockResponse::from)
+                .toList();
+        return ResponseEntity.ok(stocks);
     }
 
-
     @GetMapping("/pallet/{palletId}")
-    public ResponseEntity<List<Stock>> getStocksByPallet(@PathVariable Long palletId){
-        List<Stock> stocks = stockRepository.findByPalletId(palletId);
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<StockResponse>> getStocksByPallet(
+            @PathVariable Long palletId) {
+
+        List<StockResponse> stocks = stockRepository.findByPalletId(palletId)
+                .stream()
+                .map(StockResponse::from)
+                .toList();
         return ResponseEntity.ok(stocks);
     }
 
@@ -166,9 +183,9 @@ public class StockController {
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/{stockId}")
+    @PutMapping(value = "/{stockId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Transactional
-    public ResponseEntity<Stock> updateStock(
+    public ResponseEntity<StockResponse> updateStock(
             @CookieValue("jwt-token") String token,
             @PathVariable Long stockId,
             @RequestPart("stock") UpdateStockRequest request,
@@ -196,8 +213,11 @@ public class StockController {
         stock.setQuantity(request.getQuantity());
         stock.setPrice(request.getPrice());
 
-        // Only delete photos not in keepPhotoIds
-        List<Long> keepPhotoIds = request.getKeepPhotoIds() != null ? request.getKeepPhotoIds() : List.of();
+        // Delete photos not in keepPhotoIds
+        List<Long> keepPhotoIds = request.getKeepPhotoIds() != null
+                ? request.getKeepPhotoIds()
+                : List.of();
+
         List<Photo> photosToDelete = stock.getPhotos().stream()
                 .filter(p -> !keepPhotoIds.contains(p.getId()))
                 .toList();
@@ -248,6 +268,6 @@ public class StockController {
             }
         }
 
-        return ResponseEntity.ok(stockRepository.save(stock));
+        return ResponseEntity.ok(StockResponse.from(stockRepository.save(stock)));
     }
 }

@@ -139,4 +139,74 @@ public class CartController {
                     .body("Error: " + e.getMessage()); // expose the real message temporarily
         }
     }
+
+    @PostMapping("/{palletId}")
+    public ResponseEntity<?> addToCart(
+            @CookieValue(value = "jwt-token", required = false) String token,
+            @PathVariable Long palletId,
+            @RequestParam(defaultValue = "1") int quantity
+    ) {
+        try {
+            if (token == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing token");
+
+            Jwt jwt = jwtDecoder.decode(token);
+            Employee employee = employeeRepository.findByEmail(jwt.getSubject())
+                    .orElseThrow(() -> new EmployeeNotFoundException(jwt.getSubject()));
+
+            Company company = employee.getCompany();
+            if (company == null) return ResponseEntity.badRequest().body("Employee has no company");
+
+            Pallet pallet = palletRepository.findById(palletId)
+                    .orElseThrow(() -> new IllegalArgumentException("Pallet not found: " + palletId));
+
+            // If already in cart, increment quantity instead of adding a duplicate
+            Cart cart = cartRepository.findByOwnerIdAndPalletId(company.getId(), palletId)
+                    .map(existing -> {
+                        existing.setQuantity(existing.getQuantity() + quantity);
+                        return existing;
+                    })
+                    .orElseGet(() -> {
+                        Cart newCart = new Cart();
+                        newCart.setOwner(company);
+                        newCart.setPallet(pallet);
+                        newCart.setQuantity(quantity);
+                        return newCart;
+                    });
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(cartRepository.save(cart));
+
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred");
+        }
+    }
+
+    @DeleteMapping("/{palletId}")
+    public ResponseEntity<?> removeFromCart(
+            @CookieValue(value = "jwt-token", required = false) String token,
+            @PathVariable Long palletId
+    ) {
+        try {
+            if (token == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing token");
+
+            Jwt jwt = jwtDecoder.decode(token);
+            Employee employee = employeeRepository.findByEmail(jwt.getSubject())
+                    .orElseThrow(() -> new EmployeeNotFoundException(jwt.getSubject()));
+
+            Company company = employee.getCompany();
+            if (company == null) return ResponseEntity.badRequest().body("Employee has no company");
+
+            cartRepository.deleteByOwnerIdAndPalletId(company.getId(), palletId);
+
+            return ResponseEntity.noContent().build();
+
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred");
+        }
+    }
 }
