@@ -1,15 +1,13 @@
 // routes/pallet-stock.tsx
-import { Badge, Breadcrumb, Card, Col, Image, Row, Table } from "react-bootstrap";
+import { Badge, Breadcrumb, Card, Col, Image, ListGroup, Row, Table } from "react-bootstrap";
 import type { Route } from "./+types/pallet-stock";
-import type { PalletStock } from "../types";
+import type { Pallet, PalletStock } from "../types";
 import { useTranslation } from "react-i18next";
 import {
   CheckCircle,
-  Cancel,
-  LocalShipping,
   Storefront,
-  Public,
-  Flag,
+  Verified,
+  OpenInNew,
 } from "@mui/icons-material";
 
 const apiUrl = import.meta.env.VITE_API_URL;
@@ -27,6 +25,122 @@ export async function clientLoader({
   }
 
   return await res.json();
+}
+
+/** Render a componentDetails value, flattening nested objects to JSON. */
+function renderValue(value: unknown): string {
+  if (value === null || value === undefined) return "—";
+  if (typeof value === "object") return JSON.stringify(value);
+  return String(value);
+}
+
+/**
+ * Extended pallet attributes — EPAL specs, descriptions, component breakdown
+ * and the source document. Every field is optional, so each block only renders
+ * when the pallet actually carries that data; the whole card disappears when
+ * there is nothing extra to show (e.g. legacy or custom pallets).
+ */
+function PalletDetails({ pallet }: { pallet: Pallet }) {
+  const { t } = useTranslation();
+
+  const specs: { label: string; value: React.ReactNode }[] = [];
+  if (pallet.epalCode) specs.push({ label: t("epal_code"), value: pallet.epalCode });
+  if (pallet.revision) specs.push({ label: t("revision"), value: pallet.revision });
+  if (pallet.boards) specs.push({ label: t("boards"), value: pallet.boards.toLocaleString() });
+  if (pallet.nails) specs.push({ label: t("nails"), value: pallet.nails.toLocaleString() });
+  if (pallet.blocks) specs.push({ label: t("blocks"), value: pallet.blocks.toLocaleString() });
+  if (pallet.stackingLoad != null)
+    specs.push({ label: t("stacking_load"), value: `${pallet.stackingLoad.toLocaleString()} kg` });
+  if (pallet.superimposedLoad)
+    specs.push({ label: t("superimposed_load"), value: pallet.superimposedLoad });
+  if (pallet.cargoSpaceCubicMeters != null)
+    specs.push({ label: t("cargo_space"), value: `${pallet.cargoSpaceCubicMeters.toLocaleString()} m³` });
+  if (pallet.ispm15Required != null)
+    specs.push({ label: t("ispm15_required"), value: pallet.ispm15Required ? t("yes") : t("no") });
+
+  const textBlocks = [
+    { label: t("materials"), value: pallet.materials },
+    { label: t("use_case"), value: pallet.useCase },
+    { label: t("handling"), value: pallet.handling },
+    { label: t("description"), value: pallet.description },
+  ].filter((b) => b.value);
+
+  const componentEntries = Object.entries(pallet.componentDetails ?? {});
+  const hasSortDescription = !!pallet.palletSort?.description;
+
+  if (
+    specs.length === 0 &&
+    textBlocks.length === 0 &&
+    !hasSortDescription &&
+    componentEntries.length === 0 &&
+    !pallet.sourceUrl
+  ) {
+    return null;
+  }
+
+  return (
+    <Card className="w-75 shadow-sm">
+      <Card.Header className="fw-bold">{t("specifications")}</Card.Header>
+      <Card.Body className="d-flex flex-column gap-4">
+        {hasSortDescription && (
+          <p className="text-muted mb-0">{pallet.palletSort.description}</p>
+        )}
+
+        {specs.length > 0 && (
+          <Table borderless size="sm" className="mb-0">
+            <tbody>
+              {specs.map((spec) => (
+                <tr key={spec.label}>
+                  <td className="text-muted pe-3" style={{ width: "40%" }}>
+                    {spec.label}
+                  </td>
+                  <td>{spec.value}</td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        )}
+
+        {textBlocks.map((block) => (
+          <div key={block.label}>
+            <h6 className="fw-semibold">{block.label}</h6>
+            <p className="text-muted mb-0" style={{ whiteSpace: "pre-line" }}>
+              {block.value}
+            </p>
+          </div>
+        ))}
+
+        {componentEntries.length > 0 && (
+          <div>
+            <h6 className="fw-semibold">{t("component_details")}</h6>
+            <ListGroup variant="flush">
+              {componentEntries.map(([key, value]) => (
+                <ListGroup.Item
+                  key={key}
+                  className="d-flex justify-content-between gap-3 px-0"
+                >
+                  <span className="text-muted">{key}</span>
+                  <span className="text-end">{renderValue(value)}</span>
+                </ListGroup.Item>
+              ))}
+            </ListGroup>
+          </div>
+        )}
+
+        {pallet.sourceUrl && (
+          <a
+            href={pallet.sourceUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="small d-inline-flex align-items-center gap-1"
+          >
+            <OpenInNew style={{ fontSize: 16 }} />
+            {t("view_source")}
+          </a>
+        )}
+      </Card.Body>
+    </Card>
+  );
 }
 
 
@@ -81,11 +195,23 @@ export default function PalletStocksPage({ loaderData }: Route.ComponentProps) {
             />
           </Col>
           <Col>
-            <h3 className="mb-1">
-              {t(pallet.name)}{" "}
+            <h3 className="mb-1 d-flex align-items-center flex-wrap gap-2">
+              {t(pallet.name)}
               <Badge bg={pallet.quality === "new" ? "success" : "warning"}>
                 {t(pallet.quality)}
               </Badge>
+              {pallet.epalCode && <Badge bg="secondary">{pallet.epalCode}</Badge>}
+              {pallet.custom && <Badge bg="info">{t("custom")}</Badge>}
+              {pallet.ispm15Required && (
+                <Badge
+                  bg="light"
+                  text="dark"
+                  className="d-inline-flex align-items-center gap-1"
+                >
+                  <Verified style={{ fontSize: 14 }} />
+                  {t("ispm15")}
+                </Badge>
+              )}
             </h3>
             <Table borderless size="sm" className="mb-0 w-auto">
               <tbody>
@@ -97,16 +223,23 @@ export default function PalletStocksPage({ loaderData }: Route.ComponentProps) {
                 </tr>
                 <tr>
                   <td className="text-muted pe-3">{t("weight")}</td>
-                  <td>{pallet.weight} kg</td>
+                  <td>{pallet.weight != null ? `${pallet.weight} kg` : "—"}</td>
                 </tr>
                 <tr>
                   <td className="text-muted pe-3">{t("safe_working_load")}</td>
-                  <td>{pallet.safeWorkingLoad} kg</td>
+                  <td>
+                    {pallet.safeWorkingLoad != null
+                      ? `${pallet.safeWorkingLoad} kg`
+                      : "—"}
+                  </td>
                 </tr>
               </tbody>
             </Table>
           </Col>
         </Row>
+
+        {/* Extended pallet specifications */}
+        <PalletDetails pallet={pallet} />
 
         {/* Stock listings */}
         <div className="w-75 d-flex flex-column gap-3 mb-4">
