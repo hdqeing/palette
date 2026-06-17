@@ -164,7 +164,7 @@ public class QueryService {
         List<QueryPalletDetailsResponse> palletDtos = queryPallets.stream().map(qp -> {
             QueryPalletDetailsResponse dto = new QueryPalletDetailsResponse();
             dto.setQueryPalletId(qp.getId());
-            dto.setPallet(qp.getPallet());
+            dto.setPallet(PalletResponse.from(qp.getPallet()));
             dto.setQuantity(qp.getQuantity());
             return dto;
         }).toList();
