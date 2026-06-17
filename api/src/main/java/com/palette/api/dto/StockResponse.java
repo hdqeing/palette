@@ -9,13 +9,25 @@ public record StockResponse(
         int quantity,
         double price,
         PalletDto pallet,
-        List<String> photoUrls
+        CompanyResponse company,
+        List<PhotoDto> photos
 ) {
     public record PalletDto(
             Long id,
             String name,
             String quality,
-            String url
+            String url,
+            int length,
+            int width,
+            int height,
+            Integer safeWorkingLoad,
+            Double weight,
+            PalletSortResponse palletSort
+    ) {}
+
+    public record PhotoDto(
+            Long id,
+            String blobName
     ) {}
 
     public static StockResponse from(Stock stock) {
@@ -27,10 +39,19 @@ public record StockResponse(
                         stock.getPallet().getId(),
                         stock.getPallet().getName(),
                         stock.getPallet().getQuality(),
-                        stock.getPallet().getUrl()
+                        stock.getPallet().getUrl(),
+                        stock.getPallet().getLength(),
+                        stock.getPallet().getWidth(),
+                        stock.getPallet().getHeight(),
+                        stock.getPallet().getSafeWorkingLoad(),
+                        stock.getPallet().getWeight(),
+                        stock.getPallet().getPalletSort() != null
+                                ? PalletSortResponse.from(stock.getPallet().getPalletSort())
+                                : null
                 ),
+                stock.getCompany() != null ? CompanyResponse.from(stock.getCompany()) : null,
                 stock.getPhotos().stream()
-                        .map(p -> p.getBlobName())
+                        .map(p -> new PhotoDto(p.getId(), p.getBlobName()))
                         .toList()
         );
     }
