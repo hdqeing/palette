@@ -62,12 +62,13 @@ export interface PaletteSort {
 }
 
 /**
- * Simplified pallet sort — just id and name.
+ * Simplified pallet sort — id, name and an optional description.
  * Embedded inside detailed Pallet responses.
  */
 export interface PalletSort {
   id: number;
   name: string;
+  description: string | null;
 }
 
 /**
@@ -82,6 +83,11 @@ export interface Palette {
 
 /**
  * Detailed pallet — used in query detail, stock, and pallet detail views.
+ *
+ * `safeWorkingLoad` and `weight` are nullable because some EPAL product
+ * sheets (especially CP pallets) do not publish these values. The richer
+ * spec fields (`materials`, `useCase`, EPAL code, …) are also optional and
+ * absent on legacy / custom pallets.
  */
 export interface Pallet {
   id: number;
@@ -92,11 +98,25 @@ export interface Pallet {
   length: number;
   width: number;
   height: number;
+  epalCode: string | null;
   name: string;
-  safeWorkingLoad: number;
-  weight: number;
+  safeWorkingLoad: number | null;
+  weight: number | null;
   quality: string;
   url: string;
+  description: string | null;
+  custom: boolean;
+  materials: string | null;
+  useCase: string | null;
+  handling: string | null;
+  ispm15Required: boolean | null;
+  stackingLoad: number | null;
+  cargoSpaceCubicMeters: number | null;
+  superimposedLoad: string | null;
+  revision: string | null;
+  sourceUrl: string | null;
+  componentDetails: Record<string, unknown>;
+  ownerId: number | null;
 }
 
 export interface QualitySubItem {
@@ -114,9 +134,10 @@ export interface GroupedPallet {
   length: number;
   width: number;
   height: number;
+  epalCode: string | null;
   name: string;
-  safeWorkingLoad: number;
-  weight: number;
+  safeWorkingLoad: number | null;
+  weight: number | null;
   qualities: string[];
   qualityItems: QualitySubItem[];
 }
