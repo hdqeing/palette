@@ -1,11 +1,12 @@
 package com.palette.api.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
 
 @Entity
 @Data
@@ -15,10 +16,14 @@ public class PalletSort {
     @Id
     @GeneratedValue
     private long id;
+
+    @Column(unique = true)
     private String name;
 
-    public PalletSort(String palletName) {
-        this.name=palletName;
-    }
+    @Column(columnDefinition = "TEXT")
+    private String description;
 
+    public PalletSort(String palletName) {
+        this.name = palletName;
+    }
 }

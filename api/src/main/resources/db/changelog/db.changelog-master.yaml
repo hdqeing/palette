@@ -1,0 +1,974 @@
+databaseChangeLog:
+- changeSet:
+    id: 1781013205358-1
+    author: dingqinghe (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: email_notification_enabled
+            type: BOOLEAN
+        - column:
+            constraints:
+              nullable: false
+            name: is_active
+            type: BOOLEAN
+        - column:
+            name: company_id
+            type: BIGINT
+        - column:
+            name: expire_at
+            type: TIMESTAMP WITH TIME ZONE
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: employee_pkey
+            name: id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: company_role
+            type: VARCHAR(255)
+        - column:
+            name: email
+            type: VARCHAR(255)
+        - column:
+            name: entra_oid
+            type: VARCHAR(255)
+        - column:
+            name: first_name
+            type: VARCHAR(255)
+        - column:
+            name: last_name
+            type: VARCHAR(255)
+        - column:
+            name: password
+            type: VARCHAR(255)
+        - column:
+            name: preferred_language
+            type: VARCHAR(255)
+        - column:
+            name: salutation
+            type: VARCHAR(255)
+        - column:
+            name: telephone
+            type: VARCHAR(255)
+        - column:
+            name: username
+            type: VARCHAR(255)
+        - column:
+            name: verification_code
+            type: VARCHAR(255)
+        tableName: employee
+- changeSet:
+    id: 1781013205358-2
+    author: dingqinghe (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: total_price
+            type: FLOAT8
+        - column:
+            name: buyer_id
+            type: BIGINT
+        - column:
+            name: created_at
+            type: TIMESTAMP WITH TIME ZONE
+        - column:
+            name: delivery_date
+            type: TIMESTAMP WITH TIME ZONE
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: orders_pkey
+            name: id
+            type: BIGINT
+        - column:
+            name: query_id
+            type: BIGINT
+        - column:
+            name: seller_id
+            type: BIGINT
+        - column:
+            name: delivery_address
+            type: VARCHAR(255)
+        - column:
+            name: status
+            type: VARCHAR(255)
+        tableName: orders
+- changeSet:
+    id: 1781013205358-3
+    author: dingqinghe (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: entra_oid
+        constraintName: employee_entra_oid_key
+        tableName: employee
+- changeSet:
+    id: 1781013205358-4
+    author: dingqinghe (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: query_id
+        constraintName: orders_query_id_key
+        tableName: orders
+- changeSet:
+    id: 1781013205358-5
+    author: dingqinghe (generated)
+    changes:
+    - createSequence:
+        cacheSize: 1
+        cycle: false
+        dataType: bigint
+        incrementBy: 50
+        maxValue: 9223372036854775807
+        minValue: 1
+        sequenceName: cart_seq
+        startValue: 1
+- changeSet:
+    id: 1781013205358-6
+    author: dingqinghe (generated)
+    changes:
+    - createSequence:
+        cacheSize: 1
+        cycle: false
+        dataType: bigint
+        incrementBy: 50
+        maxValue: 9223372036854775807
+        minValue: 1
+        sequenceName: company_seq
+        startValue: 1
+- changeSet:
+    id: 1781013205358-7
+    author: dingqinghe (generated)
+    changes:
+    - createSequence:
+        cacheSize: 1
+        cycle: false
+        dataType: bigint
+        incrementBy: 50
+        maxValue: 9223372036854775807
+        minValue: 1
+        sequenceName: employee_seq
+        startValue: 1
+- changeSet:
+    id: 1781013205358-8
+    author: dingqinghe (generated)
+    changes:
+    - createSequence:
+        cacheSize: 1
+        cycle: false
+        dataType: bigint
+        incrementBy: 50
+        maxValue: 9223372036854775807
+        minValue: 1
+        sequenceName: message_seq
+        startValue: 1
+- changeSet:
+    id: 1781013205358-9
+    author: dingqinghe (generated)
+    changes:
+    - createSequence:
+        cacheSize: 1
+        cycle: false
+        dataType: bigint
+        incrementBy: 50
+        maxValue: 9223372036854775807
+        minValue: 1
+        sequenceName: orders_seq
+        startValue: 1
+- changeSet:
+    id: 1781013205358-10
+    author: dingqinghe (generated)
+    changes:
+    - createSequence:
+        cacheSize: 1
+        cycle: false
+        dataType: bigint
+        incrementBy: 50
+        maxValue: 9223372036854775807
+        minValue: 1
+        sequenceName: pallet_seq
+        startValue: 1
+- changeSet:
+    id: 1781013205358-11
+    author: dingqinghe (generated)
+    changes:
+    - createSequence:
+        cacheSize: 1
+        cycle: false
+        dataType: bigint
+        incrementBy: 50
+        maxValue: 9223372036854775807
+        minValue: 1
+        sequenceName: pallet_sort_seq
+        startValue: 1
+- changeSet:
+    id: 1781013205358-12
+    author: dingqinghe (generated)
+    changes:
+    - createSequence:
+        cacheSize: 1
+        cycle: false
+        dataType: bigint
+        incrementBy: 50
+        maxValue: 9223372036854775807
+        minValue: 1
+        sequenceName: photo_seq
+        startValue: 1
+- changeSet:
+    id: 1781013205358-13
+    author: dingqinghe (generated)
+    changes:
+    - createSequence:
+        cacheSize: 1
+        cycle: false
+        dataType: bigint
+        incrementBy: 50
+        maxValue: 9223372036854775807
+        minValue: 1
+        sequenceName: query_pallet_seq
+        startValue: 1
+- changeSet:
+    id: 1781013205358-14
+    author: dingqinghe (generated)
+    changes:
+    - createSequence:
+        cacheSize: 1
+        cycle: false
+        dataType: bigint
+        incrementBy: 50
+        maxValue: 9223372036854775807
+        minValue: 1
+        sequenceName: query_seller_seq
+        startValue: 1
+- changeSet:
+    id: 1781013205358-15
+    author: dingqinghe (generated)
+    changes:
+    - createSequence:
+        cacheSize: 1
+        cycle: false
+        dataType: bigint
+        incrementBy: 50
+        maxValue: 9223372036854775807
+        minValue: 1
+        sequenceName: query_seq
+        startValue: 1
+- changeSet:
+    id: 1781013205358-16
+    author: dingqinghe (generated)
+    changes:
+    - createSequence:
+        cacheSize: 1
+        cycle: false
+        dataType: bigint
+        incrementBy: 50
+        maxValue: 9223372036854775807
+        minValue: 1
+        sequenceName: quote_seq
+        startValue: 1
+- changeSet:
+    id: 1781013205358-17
+    author: dingqinghe (generated)
+    changes:
+    - createSequence:
+        cacheSize: 1
+        cycle: false
+        dataType: bigint
+        incrementBy: 50
+        maxValue: 9223372036854775807
+        minValue: 1
+        sequenceName: stock_seq
+        startValue: 1
+- changeSet:
+    id: 1781013205358-18
+    author: dingqinghe (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            name: quantity
+            type: INTEGER
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: cart_pkey
+            name: id
+            type: BIGINT
+        - column:
+            name: owner_id
+            type: BIGINT
+        - column:
+            name: pallet_id
+            type: BIGINT
+        tableName: cart
+- changeSet:
+    id: 1781013205358-19
+    author: dingqinghe (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: is_eu_deliver
+            type: BOOLEAN
+        - column:
+            constraints:
+              nullable: false
+            name: is_eu_pick_up
+            type: BOOLEAN
+        - column:
+            constraints:
+              nullable: false
+            name: is_germany_deliver
+            type: BOOLEAN
+        - column:
+            constraints:
+              nullable: false
+            name: is_germany_pick_up
+            type: BOOLEAN
+        - column:
+            constraints:
+              nullable: false
+            name: is_seller
+            type: BOOLEAN
+        - column:
+            constraints:
+              nullable: false
+            name: is_shipping
+            type: BOOLEAN
+        - column:
+            constraints:
+              nullable: false
+            name: verified
+            type: BOOLEAN
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: company_pkey
+            name: id
+            type: BIGINT
+        - column:
+            name: city
+            type: VARCHAR(255)
+        - column:
+            name: homepage
+            type: VARCHAR(255)
+        - column:
+            name: house_number
+            type: VARCHAR(255)
+        - column:
+            name: postal_code
+            type: VARCHAR(255)
+        - column:
+            name: street
+            type: VARCHAR(255)
+        - column:
+            name: title
+            type: VARCHAR(255)
+        - column:
+            name: vat
+            type: VARCHAR(255)
+        tableName: company
+- changeSet:
+    id: 1781013205358-20
+    author: dingqinghe (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: is_read
+            type: BOOLEAN
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: message_pkey
+            name: id
+            type: BIGINT
+        - column:
+            name: receiver_id
+            type: BIGINT
+        - column:
+            name: body
+            type: VARCHAR(255)
+        - column:
+            name: email_state
+            type: VARCHAR(255)
+        tableName: message
+- changeSet:
+    id: 1781013205358-21
+    author: dingqinghe (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: blocks
+            type: INTEGER
+        - column:
+            constraints:
+              nullable: false
+            name: boards
+            type: INTEGER
+        - column:
+            constraints:
+              nullable: false
+            name: custom
+            type: BOOLEAN
+        - column:
+            constraints:
+              nullable: false
+            name: height
+            type: INTEGER
+        - column:
+            constraints:
+              nullable: false
+            name: length
+            type: INTEGER
+        - column:
+            constraints:
+              nullable: false
+            name: nails
+            type: INTEGER
+        - column:
+            constraints:
+              nullable: false
+            name: safe_working_load
+            type: INTEGER
+        - column:
+            constraints:
+              nullable: false
+            name: weight
+            type: FLOAT8
+        - column:
+            constraints:
+              nullable: false
+            name: width
+            type: INTEGER
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: pallet_pkey
+            name: id
+            type: BIGINT
+        - column:
+            name: owner_id
+            type: BIGINT
+        - column:
+            name: pallet_sort_id
+            type: BIGINT
+        - column:
+            name: description
+            type: VARCHAR(255)
+        - column:
+            name: name
+            type: VARCHAR(255)
+        - column:
+            name: quality
+            type: VARCHAR(255)
+        - column:
+            name: url
+            type: VARCHAR(255)
+        tableName: pallet
+- changeSet:
+    id: 1781013205358-22
+    author: dingqinghe (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: pallet_sort_pkey
+            name: id
+            type: BIGINT
+        - column:
+            name: name
+            type: VARCHAR(255)
+        tableName: pallet_sort
+- changeSet:
+    id: 1781013205358-23
+    author: dingqinghe (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: photo_pkey
+            name: id
+            type: BIGINT
+        - column:
+            name: owner_id
+            type: BIGINT
+        - column:
+            name: stock_id
+            type: BIGINT
+        - column:
+            name: blob_name
+            type: VARCHAR(255)
+        tableName: photo
+- changeSet:
+    id: 1781013205358-24
+    author: dingqinghe (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            name: is_closed
+            type: BOOLEAN
+        - column:
+            constraints:
+              nullable: false
+            name: is_delivery_request
+            type: BOOLEAN
+        - column:
+            name: buyer_id
+            type: BIGINT
+        - column:
+            name: deadline
+            type: TIMESTAMP WITH TIME ZONE
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: query_pkey
+            name: id
+            type: BIGINT
+        tableName: query
+- changeSet:
+    id: 1781013205358-25
+    author: dingqinghe (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            name: quantity
+            type: INTEGER
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: query_pallet_pkey
+            name: id
+            type: BIGINT
+        - column:
+            name: pallet_id
+            type: BIGINT
+        - column:
+            name: query_id
+            type: BIGINT
+        tableName: query_pallet
+- changeSet:
+    id: 1781013205358-26
+    author: dingqinghe (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: is_accepted
+            type: BOOLEAN
+        - column:
+            constraints:
+              nullable: false
+            name: is_rejected
+            type: BOOLEAN
+        - column:
+            constraints:
+              nullable: false
+            name: sum
+            type: FLOAT8
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: query_seller_pkey
+            name: id
+            type: BIGINT
+        - column:
+            name: query_id
+            type: BIGINT
+        - column:
+            name: seller_id
+            type: BIGINT
+        tableName: query_seller
+- changeSet:
+    id: 1781013205358-27
+    author: dingqinghe (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            name: is_latest
+            type: BOOLEAN
+        - column:
+            constraints:
+              nullable: false
+            name: price
+            type: FLOAT8
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: quote_pkey
+            name: id
+            type: BIGINT
+        - column:
+            name: query_pallet_id
+            type: BIGINT
+        - column:
+            name: seller_id
+            type: BIGINT
+        tableName: quote
+- changeSet:
+    id: 1781013205358-28
+    author: dingqinghe (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: price
+            type: FLOAT8
+        - column:
+            constraints:
+              nullable: false
+            name: quantity
+            type: INTEGER
+        - column:
+            name: company_id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: stock_pkey
+            name: id
+            type: BIGINT
+        - column:
+            name: pallet_id
+            type: BIGINT
+        tableName: stock
+- changeSet:
+    id: 1781013205358-29
+    author: dingqinghe (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: company_id
+        baseTableName: employee
+        constraintName: fk5v50ed2bjh60n1gc7ifuxmgf4
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: company
+        validate: true
+- changeSet:
+    id: 1781013205358-30
+    author: dingqinghe (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: seller_id
+        baseTableName: quote
+        constraintName: fk7fva6ks6xcnd764apb3tlnkt7
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: company
+        validate: true
+- changeSet:
+    id: 1781013205358-31
+    author: dingqinghe (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: owner_id
+        baseTableName: pallet
+        constraintName: fk8bt2f6h3ifyf2hkrp7p8c11sp
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: company
+        validate: true
+- changeSet:
+    id: 1781013205358-32
+    author: dingqinghe (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: buyer_id
+        baseTableName: query
+        constraintName: fk8hlr2fs2v705g525vnn8s5i60
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: company
+        validate: true
+- changeSet:
+    id: 1781013205358-33
+    author: dingqinghe (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: receiver_id
+        baseTableName: message
+        constraintName: fk8m5dvokrhcld1ho7w8jrc6f7o
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: employee
+        validate: true
+- changeSet:
+    id: 1781013205358-34
+    author: dingqinghe (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: company_id
+        baseTableName: stock
+        constraintName: fk9r297vk0rghnrccw09x0qybfj
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: company
+        validate: true
+- changeSet:
+    id: 1781013205358-35
+    author: dingqinghe (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: pallet_id
+        baseTableName: cart
+        constraintName: fka6ya2wmx3ecudonr2oqk39pjy
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: pallet
+        validate: true
+- changeSet:
+    id: 1781013205358-36
+    author: dingqinghe (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: query_id
+        baseTableName: query_pallet
+        constraintName: fkawkcwe6bqwvuy4fea7ohpugqn
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: query
+        validate: true
+- changeSet:
+    id: 1781013205358-37
+    author: dingqinghe (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: pallet_id
+        baseTableName: query_pallet
+        constraintName: fkbwx9hfkngk3rjojiix29vmy0v
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: pallet
+        validate: true
+- changeSet:
+    id: 1781013205358-38
+    author: dingqinghe (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: seller_id
+        baseTableName: orders
+        constraintName: fkdejacx8m6v6ggipvqe54qtqwe
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: company
+        validate: true
+- changeSet:
+    id: 1781013205358-39
+    author: dingqinghe (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: pallet_sort_id
+        baseTableName: pallet
+        constraintName: fkdlu3qswirlpakg08tm3of6b1k
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: pallet_sort
+        validate: true
+- changeSet:
+    id: 1781013205358-40
+    author: dingqinghe (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: query_id
+        baseTableName: query_seller
+        constraintName: fke611xfoxe27f1bqejl73pcsnd
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: query
+        validate: true
+- changeSet:
+    id: 1781013205358-41
+    author: dingqinghe (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: buyer_id
+        baseTableName: orders
+        constraintName: fkfyaedar252crd78j0f7hl27lr
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: company
+        validate: true
+- changeSet:
+    id: 1781013205358-42
+    author: dingqinghe (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: owner_id
+        baseTableName: cart
+        constraintName: fki0bnak6gs06xmbg5gplhcn1qu
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: company
+        validate: true
+- changeSet:
+    id: 1781013205358-43
+    author: dingqinghe (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: pallet_id
+        baseTableName: stock
+        constraintName: fkjksiu2diiun95ldwxvp557k5i
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: pallet
+        validate: true
+- changeSet:
+    id: 1781013205358-44
+    author: dingqinghe (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: query_pallet_id
+        baseTableName: quote
+        constraintName: fkkfmu5ica9pecrar3efo8j2sgb
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: query_pallet
+        validate: true
+- changeSet:
+    id: 1781013205358-45
+    author: dingqinghe (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: seller_id
+        baseTableName: query_seller
+        constraintName: fkln23uocupanf5ealrcbsfgl82
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: company
+        validate: true
+- changeSet:
+    id: 1781013205358-46
+    author: dingqinghe (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: query_id
+        baseTableName: orders
+        constraintName: fkp3rjow309qapc9l0a5jdtuv9g
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: query
+        validate: true
+- changeSet:
+    id: 1781013205358-47
+    author: dingqinghe (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: owner_id
+        baseTableName: photo
+        constraintName: fkpodvxhkqxdpg20sxkr0rqekqa
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: company
+        validate: true
+- changeSet:
+    id: 1781013205358-48
+    author: dingqinghe (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: stock_id
+        baseTableName: photo
+        constraintName: fkt59chh7glaklecuad5npuvy85
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: stock
+        validate: true
+

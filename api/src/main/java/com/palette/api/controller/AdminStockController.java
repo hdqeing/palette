@@ -1,5 +1,6 @@
 package com.palette.api.controller;
 
+import com.palette.api.dto.StockResponse;
 import com.palette.api.model.Company;
 import com.palette.api.model.Pallet;
 import com.palette.api.model.Stock;
@@ -32,23 +33,24 @@ public class AdminStockController {
     private PalletRepository palletRepository;
 
     @GetMapping
-    public ResponseEntity<List<Stock>> getAllStock() {
-        return ResponseEntity.ok(stockRepository.findAll());
+    public ResponseEntity<List<StockResponse>> getAllStock() {
+        return ResponseEntity.ok(stockRepository.findAll().stream().map(StockResponse::from).toList());
     }
 
     @GetMapping("/by-company/{companyId}")
-    public ResponseEntity<List<Stock>> getStockByCompany(@PathVariable Long companyId) {
-        return ResponseEntity.ok(stockRepository.findByCompanyId(companyId));
+    public ResponseEntity<List<StockResponse>> getStockByCompany(@PathVariable Long companyId) {
+        return ResponseEntity.ok(stockRepository.findByCompanyId(companyId).stream().map(StockResponse::from).toList());
     }
 
     @GetMapping("/by-pallet/{palletId}")
-    public ResponseEntity<List<Stock>> getStockByPallet(@PathVariable Long palletId) {
-        return ResponseEntity.ok(stockRepository.findByPalletId(palletId));
+    public ResponseEntity<List<StockResponse>> getStockByPallet(@PathVariable Long palletId) {
+        return ResponseEntity.ok(stockRepository.findByPalletId(palletId).stream().map(StockResponse::from).toList());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getStock(@PathVariable Long id) {
         return stockRepository.findById(id)
+                .map(StockResponse::from)
                 .<ResponseEntity<?>>map(ResponseEntity::ok)
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body("Stock not found: id=" + id));
@@ -82,7 +84,7 @@ public class AdminStockController {
         stock.setQuantity(request.quantity());
         stock.setPrice(request.price());
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(stockRepository.save(stock));
+        return ResponseEntity.status(HttpStatus.CREATED).body(StockResponse.from(stockRepository.save(stock)));
     }
 
     @PutMapping("/{id}")
@@ -117,7 +119,7 @@ public class AdminStockController {
         if (request.quantity() >= 0) stock.setQuantity(request.quantity());
         if (request.price() >= 0) stock.setPrice(request.price());
 
-        return ResponseEntity.ok(stockRepository.save(stock));
+        return ResponseEntity.ok(StockResponse.from(stockRepository.save(stock)));
     }
 
     @DeleteMapping("/{id}")

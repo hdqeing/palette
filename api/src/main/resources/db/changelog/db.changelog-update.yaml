@@ -1,0 +1,161 @@
+databaseChangeLog:
+    - changeSet:
+          id: 1781540102237-5
+          author: dingqinghe (generated)
+          changes:
+              - addUniqueConstraint:
+                    columnNames: name
+                    constraintName: pallet_sort_name_key
+                    tableName: pallet_sort
+    - changeSet:
+          id: 1781540102237-6
+          author: dingqinghe (generated)
+          changes:
+              - addColumn:
+                    columns:
+                        - column:
+                              name: description
+                              type: text
+                    tableName: pallet_sort
+    - changeSet:
+          id: 1781540102237-7
+          author: dingqinghe (generated)
+          changes:
+              - addColumn:
+                    columns:
+                        - column:
+                              name: cargo_space_cubic_meters
+                              type: float8
+                    tableName: pallet
+    - changeSet:
+          id: 1781540102237-8
+          author: dingqinghe (generated)
+          changes:
+              - addColumn:
+                    columns:
+                        - column:
+                              name: ispm15required
+                              type: bool
+                    tableName: pallet
+    - changeSet:
+          id: 1781540102237-9
+          author: dingqinghe (generated)
+          changes:
+              - addColumn:
+                    columns:
+                        - column:
+                              name: stacking_load
+                              type: int4
+                    tableName: pallet
+    - changeSet:
+          id: 1781540102237-10
+          author: dingqinghe (generated)
+          changes:
+              - addColumn:
+                    columns:
+                        - column:
+                              name: epal_code
+                              type: varchar(255 BYTE)
+                    tableName: pallet
+    - changeSet:
+          id: 1781540102237-4
+          author: dingqinghe (generated)
+          changes:
+              - addUniqueConstraint:
+                    columnNames: epal_code
+                    constraintName: pallet_epal_code_key
+                    tableName: pallet
+    - changeSet:
+          id: 1781540102237-11
+          author: dingqinghe (generated)
+          changes:
+              - addColumn:
+                    columns:
+                        - column:
+                              name: handling
+                              type: text
+                    tableName: pallet
+    - changeSet:
+          id: 1781540102237-12
+          author: dingqinghe (generated)
+          changes:
+              - addColumn:
+                    columns:
+                        - column:
+                              name: materials
+                              type: text
+                    tableName: pallet
+    - changeSet:
+          id: 1781540102237-13
+          author: dingqinghe (generated)
+          changes:
+              - addColumn:
+                    columns:
+                        - column:
+                              name: revision
+                              type: varchar(255 BYTE)
+                    tableName: pallet
+    - changeSet:
+          id: 1781540102237-14
+          author: dingqinghe (generated)
+          changes:
+              - addColumn:
+                    columns:
+                        - column:
+                              name: source_url
+                              type: text
+                    tableName: pallet
+    - changeSet:
+          id: 1781540102237-15
+          author: dingqinghe (generated)
+          changes:
+              - addColumn:
+                    columns:
+                        - column:
+                              name: superimposed_load
+                              type: varchar(255 BYTE)
+                    tableName: pallet
+    - changeSet:
+          id: 1781540102237-16
+          author: dingqinghe (generated)
+          changes:
+              - addColumn:
+                    columns:
+                        - column:
+                              name: use_case
+                              type: text
+                    tableName: pallet
+    - changeSet:
+          id: 1781540102237-17
+          author: dingqinghe (generated)
+          changes:
+              - addColumn:
+                    columns:
+                        - column:
+                              name: component_details
+                              type: jsonb
+                    tableName: pallet
+    - changeSet:
+          id: 1781540102237-1
+          author: dingqinghe (generated)
+          changes:
+              - modifyDataType:
+                    columnName: description
+                    newDataType: clob
+                    tableName: pallet
+    - changeSet:
+          id: 1781540102237-2
+          author: dingqinghe (generated)
+          changes:
+              - dropNotNullConstraint:
+                    columnDataType: int
+                    columnName: safe_working_load
+                    tableName: pallet
+    - changeSet:
+          id: 1781540102237-3
+          author: dingqinghe (generated)
+          changes:
+              - dropNotNullConstraint:
+                    columnDataType: float8
+                    columnName: weight
+                    tableName: pallet

@@ -2,7 +2,6 @@
 package com.palette.api.dto;
 
 import lombok.Data;
-import com.palette.api.model.Company;
 import java.time.ZonedDateTime;
 import java.util.List;
 
@@ -12,7 +11,7 @@ public class SellerQueryResponse {
     private ZonedDateTime deadline;
     private Boolean isClosed;
     private boolean isDeliveryRequest;
-    private Company buyer;
+    private CompanyRefDto buyer;
     private List<SellerQueryPalletResponse> pallets;
     private boolean accepted;
     private boolean rejected;

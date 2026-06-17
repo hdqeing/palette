@@ -3,6 +3,7 @@ package com.palette.api.controller;
 import com.azure.storage.blob.BlobClient;
 import com.azure.storage.blob.BlobClientBuilder;
 import com.palette.api.dto.CreatePhotoRequest;
+import com.palette.api.dto.PhotoResponse;
 import com.palette.api.exception.EmployeeNotFoundException;
 import com.palette.api.model.Company;
 import com.palette.api.model.Employee;
@@ -38,7 +39,7 @@ public class PhotoController {
     private String connString;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Photo> newPhoto(@CookieValue("jwt-token") String token, @RequestParam("file") MultipartFile file) {
+    public ResponseEntity<PhotoResponse> newPhoto(@CookieValue("jwt-token") String token, @RequestParam("file") MultipartFile file) {
         Jwt jwt = jwtDecoder.decode(token);
         String email = jwt.getSubject();
 
@@ -55,7 +56,7 @@ public class PhotoController {
             newPhoto.setOwner(seller);
             photoRepository.save(newPhoto);
         } catch (IOException e){}
-        return ResponseEntity.ok(newPhoto);
+        return ResponseEntity.ok(PhotoResponse.from(newPhoto));
     }
 
     @DeleteMapping("/{id}")

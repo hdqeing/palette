@@ -1,6 +1,5 @@
 package com.palette.api.controller;
 
-import com.palette.api.dto.CompanyRefDto;
 import com.palette.api.dto.CreateEmployeeRequest;
 import com.palette.api.dto.EmployeeDto;
 import com.palette.api.dto.UpdateEmployeeRequest;
@@ -34,7 +33,7 @@ public class AdminEmployeeController {
     public ResponseEntity<List<EmployeeDto>> getAllEmployees() {
         List<EmployeeDto> dtos = employeeRepository.findAll()
                 .stream()
-                .map(this::toDto)
+                .map(EmployeeDto::from)
                 .toList();
         return ResponseEntity.ok(dtos);
     }
@@ -49,7 +48,7 @@ public class AdminEmployeeController {
                     .body("Employee with this email already exists");
         }
         Employee saved = employeeService.createEmployee(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(toDto(saved));
+        return ResponseEntity.status(HttpStatus.CREATED).body(EmployeeDto.from(saved));
     }
 
     @PutMapping("/{id}")
@@ -60,30 +59,12 @@ public class AdminEmployeeController {
         Employee target = employeeRepository.findById(id)
                 .orElseThrow(() -> new EmployeeNotFoundException("id=" + id));
         Employee updated = employeeService.updateEmployee(target, request);
-        return ResponseEntity.ok(toDto(updated));
+        return ResponseEntity.ok(EmployeeDto.from(updated));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteEmployee(@PathVariable Long id) {
         employeeService.deleteEmployee(id);
         return ResponseEntity.noContent().build();
-    }
-
-    // ─── Mapper ───────────────────────────────────────────────────────────────
-
-    private EmployeeDto toDto(Employee e) {
-        CompanyRefDto companyRef = e.getCompany() == null ? null
-                : new CompanyRefDto(e.getCompany().getId(), e.getCompany().getTitle());
-        return new EmployeeDto(
-                e.getId(),
-                e.getEmail(),
-                e.getFirstName(),
-                e.getLastName(),
-                e.getTelephone(),
-                e.getUsername(),
-                e.getSalutation(),
-                e.getPreferredLanguage(),
-                companyRef
-        );
     }
 }

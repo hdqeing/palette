@@ -1,6 +1,5 @@
 package com.palette.api.dto;
 
-import com.palette.api.model.Company;
 import lombok.Data;
 
 import java.time.ZonedDateTime;
@@ -11,6 +10,6 @@ public class BuyerQueryResponse {
     private Long id;
     private ZonedDateTime deadline;
     private Boolean isClosed;
-    private List<Company> sellers;
+    private List<CompanyRefDto> sellers;
     private List<BuyerQueryPalletResponse> pallets;
 }
