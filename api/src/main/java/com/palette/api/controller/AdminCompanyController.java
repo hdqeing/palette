@@ -1,5 +1,6 @@
 package com.palette.api.controller;
 
+import com.palette.api.dto.CompanyResponse;
 import com.palette.api.dto.CreateCompanyRequest;
 import com.palette.api.dto.UpdateCompanyRequest;
 import com.palette.api.dto.VerifyCompanyRequest;
@@ -30,8 +31,10 @@ public class AdminCompanyController {
     private CompanyService companyService;
 
     @GetMapping
-    public ResponseEntity<List<Company>> getAllCompanies() {
-        return ResponseEntity.ok(companyRepository.findAll());
+    public ResponseEntity<List<CompanyResponse>> getAllCompanies() {
+        return ResponseEntity.ok(companyRepository.findAll().stream()
+                .map(CompanyResponse::from)
+                .toList());
     }
 
     @PostMapping
@@ -41,7 +44,7 @@ public class AdminCompanyController {
         }
 
         Company saved = companyService.createCompany(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+        return ResponseEntity.status(HttpStatus.CREATED).body(CompanyResponse.from(saved));
     }
 
     @PutMapping("/{id}")
@@ -53,18 +56,18 @@ public class AdminCompanyController {
                 .orElseThrow(() -> new CompanyNotFoundException(id));
 
         Company updated = companyService.updateCompany(target, request);
-        return ResponseEntity.ok(updated);
+        return ResponseEntity.ok(CompanyResponse.from(updated));
     }
 
     @PatchMapping("/{id}/verify")
-    public ResponseEntity<Company> verifyCompany(
+    public ResponseEntity<CompanyResponse> verifyCompany(
             @PathVariable Long id,
             @RequestBody VerifyCompanyRequest request
     ) {
         return companyRepository.findById(id)
                 .map(company -> {
                     company.setVerified(request.isVerified());
-                    return ResponseEntity.ok(companyRepository.save(company));
+                    return ResponseEntity.ok(CompanyResponse.from(companyRepository.save(company)));
                 })
                 .orElse(ResponseEntity.notFound().build());
     }

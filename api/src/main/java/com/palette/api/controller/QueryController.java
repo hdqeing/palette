@@ -46,8 +46,8 @@ public class QueryController {
 
 
     @PostMapping("/queries")
-    Query newQuery(@CookieValue("jwt-token") String token, @RequestBody CreateQueryRequest createQueryRequest) {
-        return queryService.createQuery(token, createQueryRequest);
+    QueryResponse newQuery(@CookieValue("jwt-token") String token, @RequestBody CreateQueryRequest createQueryRequest) {
+        return QueryResponse.from(queryService.createQuery(token, createQueryRequest));
     }
 
     @GetMapping("/queries/{id}")
@@ -75,8 +75,8 @@ public class QueryController {
     }
 
     @GetMapping("/queries/{id}/pallets")
-    List<QueryPallet> getItemsWithQuery(@PathVariable Long id) {
-        return queryPalletRepository.findByQueryId(id);
+    List<QueryPalletResponse> getItemsWithQuery(@PathVariable Long id) {
+        return queryPalletRepository.findByQueryId(id).stream().map(QueryPalletResponse::from).toList();
     }
 
     @GetMapping("/buyer/queries")
@@ -95,9 +95,10 @@ public class QueryController {
             response.setDeadline(query.getDeadline());
             response.setIsClosed(query.getIsClosed());
 
-            List<Company> sellers = querySellerRepository.findByQueryId(query.getId())
+            List<CompanyRefDto> sellers = querySellerRepository.findByQueryId(query.getId())
                     .stream()
                     .map(QuerySeller::getSeller)
+                    .map(seller -> new CompanyRefDto(seller.getId(), seller.getTitle()))
                     .toList();
             response.setSellers(sellers);
 
@@ -105,7 +106,7 @@ public class QueryController {
                     .stream()
                     .map(queryPallet -> {
                         BuyerQueryPalletResponse palletResponse = new BuyerQueryPalletResponse();
-                        palletResponse.setPallet(queryPallet.getPallet());
+                        palletResponse.setPallet(PalletResponse.from(queryPallet.getPallet()));
                         palletResponse.setQuantity(queryPallet.getQuantity());
                         return palletResponse;
                     })
@@ -141,7 +142,7 @@ public class QueryController {
                         .map(queryPallet -> {
                             SellerQueryPalletResponse palletResponse = new SellerQueryPalletResponse();
                             palletResponse.setQueryPalletId(queryPallet.getId());
-                            palletResponse.setPallet(queryPallet.getPallet());
+                            palletResponse.setPallet(PalletResponse.from(queryPallet.getPallet()));
                             palletResponse.setQuantity(queryPallet.getQuantity());
 
                             // attach the seller's quote for this pallet if it exists
@@ -157,7 +158,9 @@ public class QueryController {
                 sellerQueryResponse.setDeadline(query.getDeadline());
                 sellerQueryResponse.setIsClosed(query.getIsClosed());
                 sellerQueryResponse.setDeliveryRequest(query.isDeliveryRequest());
-                sellerQueryResponse.setBuyer(query.getBuyer());
+                sellerQueryResponse.setBuyer(query.getBuyer() != null
+                        ? new CompanyRefDto(query.getBuyer().getId(), query.getBuyer().getTitle())
+                        : null);
                 sellerQueryResponse.setPallets(pallets);
                 sellerQueryResponse.setAccepted(querySeller.isAccepted());
                 sellerQueryResponse.setRejected(querySeller.isRejected());
@@ -180,21 +183,21 @@ public class QueryController {
 
 
     @PutMapping("/queries/{queryId}/seller/{sellerId}/accept")
-    public QuerySeller acceptQuote(
+    public QuerySellerResponse acceptQuote(
             @CookieValue("jwt-token") String token,
             @PathVariable Long queryId,
             @PathVariable Long sellerId
     ) {
-        return quoteService.acceptQuote(token, queryId, sellerId);
+        return QuerySellerResponse.from(quoteService.acceptQuote(token, queryId, sellerId));
     }
 
     @PutMapping("/queries/{queryId}/seller/{sellerId}/reject")
-    public QuerySeller rejectQuote(
+    public QuerySellerResponse rejectQuote(
             @CookieValue("jwt-token") String token,
             @PathVariable Long queryId,
             @PathVariable Long sellerId
     ) {
-        return quoteService.rejectQuote(token, queryId, sellerId);
+        return QuerySellerResponse.from(quoteService.rejectQuote(token, queryId, sellerId));
     }
 
 }

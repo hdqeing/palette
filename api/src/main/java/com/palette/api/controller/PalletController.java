@@ -2,6 +2,9 @@ package com.palette.api.controller;
 
 import com.azure.storage.blob.BlobClient;
 import com.azure.storage.blob.BlobClientBuilder;
+import com.palette.api.dto.PalletRequest;
+import com.palette.api.dto.PalletResponse;
+import com.palette.api.dto.PalletSortResponse;
 import com.palette.api.exception.EmployeeNotFoundException;
 import com.palette.api.model.*;
 import com.palette.api.repository.EmployeeRepository;
@@ -41,8 +44,43 @@ public class PalletController {
     private String connString;
 
     @PostMapping("")
-    Pallet newPallet(@RequestBody Pallet newPallet) {
-        return palletRepository.save(newPallet);
+    public ResponseEntity<?> newPallet(@RequestBody PalletRequest request) {
+        if (request.palletSortId() == null) {
+            return ResponseEntity.badRequest().body("Pallet sort is required");
+        }
+
+        PalletSort palletSort = palletSortRepository.findById(request.palletSortId())
+                .orElseThrow(() -> new RuntimeException("PalletSort not found: id=" + request.palletSortId()));
+
+        Pallet pallet = new Pallet(
+                palletSort,
+                request.epalCode(),
+                request.boards(),
+                request.nails(),
+                request.blocks(),
+                request.length(),
+                request.width(),
+                request.height(),
+                request.name(),
+                request.safeWorkingLoad(),
+                request.weight(),
+                request.quality(),
+                request.url(),
+                request.description(),
+                request.materials(),
+                request.useCase(),
+                request.handling(),
+                request.ispm15Required(),
+                request.stackingLoad(),
+                request.cargoSpaceCubicMeters(),
+                request.superimposedLoad(),
+                request.revision(),
+                request.sourceUrl(),
+                request.componentDetails()
+        );
+        pallet.setCustom(request.custom());
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(PalletResponse.from(palletRepository.save(pallet)));
     }
 
     /**
@@ -50,8 +88,8 @@ public class PalletController {
      * Returns all standard (non-custom) pallets.
      */
     @GetMapping("")
-    List<Pallet> all() {
-        return palletRepository.findByCustomFalse();
+    List<PalletResponse> all() {
+        return palletRepository.findByCustomFalse().stream().map(PalletResponse::from).toList();
     }
 
     /**
@@ -73,20 +111,24 @@ public class PalletController {
         List<Pallet> standard = palletRepository.findByCustomFalse();
         List<Pallet> custom = palletRepository.findByCustomTrueAndOwnerId(company.getId());
 
-        List<Pallet> result = Stream.concat(standard.stream(), custom.stream()).toList();
+        List<PalletResponse> result = Stream.concat(standard.stream(), custom.stream())
+                .map(PalletResponse::from)
+                .toList();
         return ResponseEntity.ok(result);
     }
 
     @GetMapping("/sorts")
-    List<PalletSort> allSorts() {
-        return palletSortRepository.findAll();
+    List<PalletSortResponse> allSorts() {
+        return palletSortRepository.findAll().stream().map(PalletSortResponse::from).toList();
     }
 
     @GetMapping("/sort/{sortId}/pallets")
-    ResponseEntity<List<Pallet>> getPalletsWithSort(@PathVariable String sortId) {
+    ResponseEntity<List<PalletResponse>> getPalletsWithSort(@PathVariable String sortId) {
         try {
             Long id = Long.parseLong(sortId);
-            List<Pallet> pallets = palletRepository.findByPalletSort_Id(id);
+            List<PalletResponse> pallets = palletRepository.findByPalletSort_Id(id).stream()
+                    .map(PalletResponse::from)
+                    .toList();
             return ResponseEntity.ok(pallets);
         } catch (NumberFormatException e) {
             return ResponseEntity.badRequest().build();
@@ -144,6 +186,6 @@ public class PalletController {
         pallet.setCustom(true);
         pallet.setOwner(company);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(palletRepository.save(pallet));
+        return ResponseEntity.status(HttpStatus.CREATED).body(PalletResponse.from(palletRepository.save(pallet)));
     }
 }

@@ -1,10 +1,11 @@
 package com.palette.api.controller;
 
+import com.palette.api.dto.CompanyResponse;
 import com.palette.api.dto.CreateCompanyRequest;
+import com.palette.api.dto.StockResponse;
 import com.palette.api.dto.UpdateCompanyRequest;
 import com.palette.api.dto.VerifyCompanyRequest;
 import com.palette.api.model.Company;
-import com.palette.api.model.Stock;
 import com.palette.api.repository.CompanyRepository;
 import com.palette.api.repository.StockRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,32 +27,39 @@ public class CompanyController {
 
 
     @GetMapping
-    public ResponseEntity<List<Company>> getAllCompanies() {
-        List<Company> companies = companyRepository.findAll();
+    public ResponseEntity<List<CompanyResponse>> getAllCompanies() {
+        List<CompanyResponse> companies = companyRepository.findAll().stream()
+                .map(CompanyResponse::from)
+                .toList();
         return ResponseEntity.ok(companies);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Company> getCompanyById(@PathVariable Long id) {
+    public ResponseEntity<CompanyResponse> getCompanyById(@PathVariable Long id) {
         return companyRepository.findById(id)
+                .map(CompanyResponse::from)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/{id}/stocks")
-    public ResponseEntity<List<Stock>> getStocksByCompany(@PathVariable Long id) {
-        List<Stock> stocks = stockRepository.findByCompanyId(id);
+    public ResponseEntity<List<StockResponse>> getStocksByCompany(@PathVariable Long id) {
+        List<StockResponse> stocks = stockRepository.findByCompanyId(id).stream()
+                .map(StockResponse::from)
+                .toList();
         return ResponseEntity.ok(stocks);
     }
 
     @GetMapping("/sellers")
-    public ResponseEntity<List<Company>> getSellers() {
-        List<Company> sellers = companyRepository.findByIsSellerTrue();
+    public ResponseEntity<List<CompanyResponse>> getSellers() {
+        List<CompanyResponse> sellers = companyRepository.findByIsSellerTrue().stream()
+                .map(CompanyResponse::from)
+                .toList();
         return ResponseEntity.ok(sellers);
     }
 
     @PostMapping
-    public ResponseEntity<Company> createCompany(@RequestBody CreateCompanyRequest request) {
+    public ResponseEntity<CompanyResponse> createCompany(@RequestBody CreateCompanyRequest request) {
         Company company = new Company();
         company.setTitle(request.getTitle());
         company.setStreet(request.getStreet());
@@ -68,12 +76,12 @@ public class CompanyController {
         company.setEuDeliver(request.isEuDeliver());
 
         Company savedCompany = companyRepository.save(company);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedCompany);
+        return ResponseEntity.status(HttpStatus.CREATED).body(CompanyResponse.from(savedCompany));
     }
 
 
     @PutMapping("/{id}")
-    public ResponseEntity<Company> updateCompany(
+    public ResponseEntity<CompanyResponse> updateCompany(
             @PathVariable Long id,
             @RequestBody UpdateCompanyRequest request
     ) {
@@ -94,7 +102,7 @@ public class CompanyController {
                     existingCompany.setEuDeliver(request.isEuDeliver());
 
                     Company updatedCompany = companyRepository.save(existingCompany);
-                    return ResponseEntity.ok(updatedCompany);
+                    return ResponseEntity.ok(CompanyResponse.from(updatedCompany));
                 })
                 .orElse(ResponseEntity.notFound().build());
     }

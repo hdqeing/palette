@@ -117,7 +117,7 @@ public class AuthController {
         jwtCookie.setHttpOnly(true);
         response.addCookie(jwtCookie);
 
-        return ResponseEntity.ok().body(newEmployee);
+        return ResponseEntity.ok().body(EmployeeDto.from(newEmployee));
     }
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody LoginRequest request, HttpServletResponse response){

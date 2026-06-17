@@ -1,5 +1,6 @@
 package com.palette.api.controller;
 
+import com.palette.api.dto.CartItemResponse;
 import com.palette.api.dto.UpdateCartItemRequest;
 import com.palette.api.dto.UpdateCartRequest;
 import com.palette.api.exception.EmployeeNotFoundException;
@@ -58,7 +59,10 @@ public class CartController {
                 return ResponseEntity.badRequest().body("Employee has no company");
             }
 
-            List<Cart> cartItems = cartRepository.findByOwnerId(company.getId());
+            List<CartItemResponse> cartItems = cartRepository.findByOwnerId(company.getId())
+                    .stream()
+                    .map(CartItemResponse::from)
+                    .toList();
             return ResponseEntity.ok(cartItems);
 
         } catch (JwtException e) {
@@ -126,7 +130,7 @@ public class CartController {
             }
 
             List<Cart> savedCartItems = cartRepository.saveAll(cartsToSave);
-            return ResponseEntity.ok(savedCartItems);
+            return ResponseEntity.ok(savedCartItems.stream().map(CartItemResponse::from).toList());
 
         } catch (JwtException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -173,7 +177,7 @@ public class CartController {
                         return newCart;
                     });
 
-            return ResponseEntity.status(HttpStatus.CREATED).body(cartRepository.save(cart));
+            return ResponseEntity.status(HttpStatus.CREATED).body(CartItemResponse.from(cartRepository.save(cart)));
 
         } catch (JwtException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");

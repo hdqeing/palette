@@ -1,6 +1,7 @@
 package com.palette.api.controller;
 
 import com.palette.api.dto.CreateEmployeeRequest;
+import com.palette.api.dto.EmployeeDto;
 import com.palette.api.dto.UpdateEmployeeRequest;
 import com.palette.api.exception.EmployeeNotFoundException;
 import com.palette.api.model.Employee;
@@ -40,10 +41,10 @@ public class EmployeeController {
     private JwtDecoder jwtDecoder;
 
     @GetMapping
-    ResponseEntity<List<Employee>> all(@AuthenticationPrincipal Jwt jwt) {
+    ResponseEntity<List<EmployeeDto>> all(@AuthenticationPrincipal Jwt jwt) {
         // No DB lookup, no manual JWT decoding, no cookie reading
         // Spring Security already validated the token and extracted authorities
-        return ResponseEntity.ok(employeeRepository.findAll());
+        return ResponseEntity.ok(employeeRepository.findAll().stream().map(EmployeeDto::from).toList());
     }
 
     @PostMapping
@@ -61,7 +62,7 @@ public class EmployeeController {
             }
 
             Employee savedEmployee = employeeService.createEmployee(request);
-            return ResponseEntity.status(HttpStatus.CREATED).body(savedEmployee);
+            return ResponseEntity.status(HttpStatus.CREATED).body(EmployeeDto.from(savedEmployee));
 
         } catch (JwtException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -102,7 +103,7 @@ public class EmployeeController {
 
             Employee updatedEmployee = employeeService.updateEmployee(targetEmployee, request);
 
-            return ResponseEntity.ok(updatedEmployee);
+            return ResponseEntity.ok(EmployeeDto.from(updatedEmployee));
 
         } catch (EmployeeNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
